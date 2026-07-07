@@ -1,0 +1,96 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(CLIENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  inspections Inspection[]
+}
+
+enum Role {
+  INTERNAL
+  CLIENT
+}
+
+model Supplier {
+  id        String      @id @default(uuid())
+  name      String
+  contact   String?
+  inventory Inventory[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model Inventory {
+  id           String   @id @default(uuid())
+  jenisBarang  String   // raw material, sparepart, consumable, aksesoris
+  specBarang   String
+  kodeBarang   String   @unique
+  quantity     Int      @default(0)
+  unitOfIssue  String
+  harga        Float
+  supplierId   String?
+  supplier     Supplier? @relation(fields: [supplierId], references: [id])
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  inspectionItems InspectionItem[]
+}
+
+model Inspection {
+  id               String   @id @default(uuid())
+  picId            String
+  pic              User     @relation(fields: [picId], references: [id])
+  kategoriPerbaikan KategoriPerbaikan
+  status           StatusPerbaikan @default(PENDING)
+  catatan          String?
+  fotoBukti        String?
+  items            InspectionItem[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+enum KategoriPerbaikan {
+  GANTI
+  FABRIKASI
+  REPAIR
+}
+
+enum StatusPerbaikan {
+  PENDING
+  INSPEKSI
+  WAITING_MATERIAL
+  EKSEKUSI
+  QC
+  FINISH
+}
+
+model InspectionItem {
+  id           String     @id @default(uuid())
+  inspectionId String
+  inventoryId  String
+  inspection   Inspection @relation(fields: [inspectionId], references: [id])
+  inventory    Inventory  @relation(fields: [inventoryId], references: [id])
+  quantityUsed Int        @default(1)
+  statusMaterial StatusMaterial @default(PENDING)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+enum StatusMaterial {
+  PENDING
+  ORDERED
+  RECEIVED
+  USED
+}
