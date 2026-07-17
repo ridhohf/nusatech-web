@@ -13,7 +13,7 @@ import supplierRoutes from './routes/supplier.routes';
 import userRoutes from './routes/user.routes';
 
 if (!process.env.JWT_SECRET) {
-  throw new Error('FATAL: JWT_SECRET environment variable is not set. Refusing to start.');
+  console.error('WARNING: JWT_SECRET environment variable is not set!');
 }
 
 const app = express();
@@ -54,6 +54,10 @@ app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // ─── Routes ──────────────────────────────────────────────────────────────────
+app.get('/ping', (req, res) => {
+  res.json({ message: 'pong', status: 'Backend Vercel is alive!' });
+});
+
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/inventory', authenticate, inventoryRoutes);
 app.use('/api/inspections', authenticate, inspectionRoutes);
