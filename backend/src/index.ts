@@ -25,8 +25,16 @@ app.use(helmet());
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Mengizinkan semua origin sementara untuk Vercel
-    callback(null, true);
+    const allowedOrigins = [
+      'https://nusatech-frontend.vercel.app',
+      'http://localhost:3000',
+    ];
+    // Mengizinkan request tanpa origin (seperti /ping dari browser langsung)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Ditolak oleh kebijakan CORS'));
+    }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
