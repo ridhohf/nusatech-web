@@ -60,7 +60,11 @@ app.use('/api/users', authenticate, userRoutes);
 // ─── Global Error Handler ────────────────────────────────────────────────────
 app.use(errorHandler);
 
-app.listen(port, () => {
-  console.log(`✅ Server running on http://localhost:${port}`);
-  console.log(`🌍 Accepting requests from: ${ALLOWED_ORIGIN}`);
-});
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  app.listen(port, () => {
+    console.log(`✅ Server running on http://localhost:${port}`);
+    console.log(`🌍 Accepting requests from: ${ALLOWED_ORIGIN}`);
+  });
+}
+
+module.exports = app;
