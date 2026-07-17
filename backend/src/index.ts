@@ -24,8 +24,11 @@ const ALLOWED_ORIGIN = process.env.FRONTEND_URL || 'http://localhost:3000';
 app.use(helmet());
 
 app.use(cors({
-  origin: ALLOWED_ORIGIN,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  origin: (origin, callback) => {
+    // Mengizinkan semua origin sementara untuk Vercel
+    callback(null, true);
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 }));
