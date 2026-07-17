@@ -45,9 +45,6 @@ export default function InternalLayout({ children }: { children: React.ReactNode
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <div style={{ backgroundColor: 'var(--blue-600)', color: 'white', padding: '0.5rem', borderRadius: '0.5rem' }}>
-            <ClipboardCheck size={24} />
-          </div>
           <span style={{ fontSize: '1.25rem' }}>Nusatech MRO</span>
         </div>
 

@@ -56,10 +56,7 @@ export default function LoginPage() {
       <div className="auth-card" style={{ position: 'relative', zIndex: 10, background: 'rgba(255, 255, 255, 0.85)', backdropFilter: 'blur(16px)' }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-            <div style={{ backgroundColor: 'var(--blue-600)', color: 'white', padding: '0.75rem', borderRadius: '0.75rem' }}>
-              <LogIn size={28} />
-            </div>
-            <h1 style={{ fontSize: '1.75rem', color: 'var(--blue-800)' }}>PT Nusatech</h1>
+            <h1 style={{ fontSize: '1.75rem', color: 'var(--blue-800)' }}>Nusatech Solusi Handal</h1>
           </div>
           <h2 style={{ fontSize: '1.25rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Portal MRO & Inventori</h2>
         </div>
