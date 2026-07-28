@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import apiClient from '@/api/client';
 import { Mail, KeyRound, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
-import Image from 'next/image';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -39,24 +38,12 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="auth-container" style={{ position: 'relative', overflow: 'hidden' }}>
-      {/* Background Image */}
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0 }}>
-        <Image 
-          src="/auth-bg.png" 
-          alt="Background" 
-          fill 
-          style={{ objectFit: 'cover', opacity: 0.8 }} 
-          priority 
-        />
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'linear-gradient(135deg, rgba(30, 58, 138, 0.7) 0%, rgba(59, 130, 246, 0.4) 100%)' }} />
-      </div>
-
+    <div className="auth-container">
       {/* Forgot Card */}
-      <div className="auth-card" style={{ position: 'relative', zIndex: 10, background: 'rgba(255, 255, 255, 0.92)', backdropFilter: 'blur(16px)', width: '100%', maxWidth: '440px' }}>
+      <div className="auth-card">
         <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
           <h1 style={{ fontSize: '1.75rem', color: 'var(--blue-800)', fontWeight: 700 }}>Nusatech Solusi Handal</h1>
-          <h2 style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', fontWeight: 500, marginTop: '0.25rem' }}>
+          <h2 style={{ fontSize: '1rem', color: 'var(--text-secondary)', fontWeight: 500, marginTop: '0.25rem' }}>
             Reset your password
           </h2>
         </div>

@@ -1,0 +1,66 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Auto Open Terminals",
+      "dependsOn": ["Root Project", "Frontend", "Backend"],
+      "runOptions": {
+        "runOn": "folderOpen"
+      }
+    },
+    {
+      "label": "Root Project",
+      "type": "shell",
+      "command": "powershell",
+      "args": ["-NoExit", "-Command", "Set-Location '${workspaceFolder}'; Clear-Host"],
+      "isBackground": true,
+      "problemMatcher": [],
+      "icon": {
+        "id": "terminal-powershell"
+      },
+      "presentation": {
+        "group": "standalone-root-tab",
+        "reveal": "always",
+        "panel": "new",
+        "showReuseMessage": false,
+        "clear": true
+      }
+    },
+    {
+      "label": "Frontend",
+      "type": "shell",
+      "command": "powershell",
+      "args": ["-NoExit", "-Command", "Set-Location '${workspaceFolder}\\frontend'; Clear-Host"],
+      "isBackground": true,
+      "problemMatcher": [],
+      "icon": {
+        "id": "terminal-powershell"
+      },
+      "presentation": {
+        "group": "split-dev-pane",
+        "reveal": "always",
+        "panel": "new",
+        "showReuseMessage": false,
+        "clear": true
+      }
+    },
+    {
+      "label": "Backend",
+      "type": "shell",
+      "command": "powershell",
+      "args": ["-NoExit", "-Command", "Set-Location '${workspaceFolder}\\backend'; Clear-Host"],
+      "isBackground": true,
+      "problemMatcher": [],
+      "icon": {
+        "id": "terminal-powershell"
+      },
+      "presentation": {
+        "group": "split-dev-pane",
+        "reveal": "always",
+        "panel": "new",
+        "showReuseMessage": false,
+        "clear": true
+      }
+    }
+  ]
+}

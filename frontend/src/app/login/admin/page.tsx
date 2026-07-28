@@ -5,8 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import apiClient from '@/api/client';
 import { useAuthStore } from '@/store/useAuthStore';
-import { Mail, Lock, ShieldCheck, ArrowLeft } from 'lucide-react';
-import Image from 'next/image';
+import { Mail, Lock, ArrowLeft } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
@@ -41,24 +40,12 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="auth-container" style={{ position: 'relative', overflow: 'hidden' }}>
-      {/* Background Image */}
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0 }}>
-        <Image 
-          src="/auth-bg.png" 
-          alt="Background" 
-          fill 
-          style={{ objectFit: 'cover', opacity: 0.85 }} 
-          priority 
-        />
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 58, 138, 0.75) 100%)' }} />
-      </div>
-
+    <div className="auth-container">
       {/* Login Card */}
-      <div className="auth-card" style={{ position: 'relative', zIndex: 10, background: 'rgba(255, 255, 255, 0.92)', backdropFilter: 'blur(16px)', width: '100%', maxWidth: '440px' }}>
+      <div className="auth-card">
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <h1 style={{ fontSize: '1.75rem', color: 'var(--blue-800)', fontWeight: 700 }}>Nusatech Solusi Handal</h1>
-          <h2 style={{ fontSize: '1.1rem', color: 'var(--blue-600)', fontWeight: 600, marginTop: '0.25rem' }}>Admin Portal</h2>
+          <h2 style={{ fontSize: '1rem', color: 'var(--blue-600)', fontWeight: 600, marginTop: '0.25rem' }}>Admin Portal</h2>
         </div>
 
         {error && (
