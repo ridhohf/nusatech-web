@@ -27,14 +27,14 @@ export default function AdminLoginPage() {
       const { user, token } = response.data;
 
       if (user.role !== 'INTERNAL') {
-        setError('Akun Anda terdaftar sebagai Klien. Silakan gunakan Portal Login Klien.');
+        setError('This account is registered as a Client. Please use Client Sign In.');
         return;
       }
 
       setAuth(user, token);
       router.push('/internal');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login gagal. Pastikan server backend aktif dan kredensial benar.');
+      setError(err.response?.data?.message || 'Invalid email or password.');
     } finally {
       setLoading(false);
     }
@@ -57,11 +57,8 @@ export default function AdminLoginPage() {
       {/* Login Card */}
       <div className="auth-card" style={{ position: 'relative', zIndex: 10, background: 'rgba(255, 255, 255, 0.92)', backdropFilter: 'blur(16px)', width: '100%', maxWidth: '440px' }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--blue-600)', color: 'white', padding: '0.75rem', borderRadius: '1rem', marginBottom: '1rem' }}>
-            <ShieldCheck size={32} />
-          </div>
           <h1 style={{ fontSize: '1.75rem', color: 'var(--blue-800)', fontWeight: 700 }}>Nusatech Solusi Handal</h1>
-          <h2 style={{ fontSize: '1.1rem', color: 'var(--blue-600)', fontWeight: 600, marginTop: '0.25rem' }}>Portal Admin & Staff Internal</h2>
+          <h2 style={{ fontSize: '1.1rem', color: 'var(--blue-600)', fontWeight: 600, marginTop: '0.25rem' }}>Admin Portal</h2>
         </div>
 
         {error && (
@@ -72,7 +69,7 @@ export default function AdminLoginPage() {
 
         <form onSubmit={handleLogin}>
           <div className="form-group">
-            <label className="form-label">Email Admin / Internal</label>
+            <label className="form-label">Email</label>
             <div style={{ position: 'relative' }}>
               <Mail size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
               <input 
@@ -81,7 +78,6 @@ export default function AdminLoginPage() {
                 style={{ paddingLeft: '2.5rem' }}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@nusatech.co.id"
                 required
               />
             </div>
@@ -97,20 +93,19 @@ export default function AdminLoginPage() {
                 style={{ paddingLeft: '2.5rem' }}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
                 required
               />
             </div>
           </div>
 
           <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '0.875rem', fontSize: '1rem', fontWeight: 600 }} disabled={loading}>
-            {loading ? 'Memverifikasi Access...' : 'Masuk sebagai Admin'}
+            {loading ? 'Signing in...' : 'Sign In as Admin'}
           </button>
         </form>
 
         <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border-color)', textAlign: 'center' }}>
           <Link href="/login" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'var(--blue-600)', fontSize: '0.9rem', fontWeight: 600, textDecoration: 'none' }}>
-            <ArrowLeft size={16} /> Kembali ke Portal Klien
+            <ArrowLeft size={16} /> Back to Sign In
           </Link>
         </div>
       </div>

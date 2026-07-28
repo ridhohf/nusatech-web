@@ -22,7 +22,7 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
 
 export const approveUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const user = await userService.approveUser(req.params.id);
+    const user = await userService.approveUser(req.params.id as string);
     res.json(formatSuccess(user, 'Akun berhasil disetujui'));
   } catch (error) { next(error); }
 };
