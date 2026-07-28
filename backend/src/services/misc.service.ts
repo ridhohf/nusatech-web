@@ -12,8 +12,15 @@ export const supplierService = {
 export const userService = {
   async getAll() {
     return prisma.user.findMany({
-      select: { id: true, name: true, email: true, role: true, createdAt: true },
+      select: { id: true, name: true, email: true, role: true, isApproved: true, createdAt: true },
       orderBy: { createdAt: 'desc' },
+    });
+  },
+  async approveUser(id: string) {
+    return prisma.user.update({
+      where: { id },
+      data: { isApproved: true },
+      select: { id: true, name: true, email: true, role: true, isApproved: true },
     });
   },
 };

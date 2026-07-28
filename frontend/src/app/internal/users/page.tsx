@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import apiClient from '@/api/client';
-import { User as UserIcon } from 'lucide-react';
+import { User as UserIcon, CheckCircle, Clock } from 'lucide-react';
 
 export default function UsersPage() {
   const [users, setUsers] = useState([]);
@@ -39,6 +39,15 @@ export default function UsersPage() {
     }
   };
 
+  const handleApprove = async (id: string) => {
+    try {
+      await apiClient.patch(`/users/${id}/approve`);
+      fetchUsers();
+    } catch (err) {
+      alert('Gagal menyetujui akun');
+    }
+  };
+
   return (
     <div>
       <div className="page-header">
@@ -46,14 +55,14 @@ export default function UsersPage() {
         <p style={{ color: 'var(--text-secondary)' }}>Buat dan kelola akses untuk staf Internal maupun Klien.</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2.5fr', gap: '2rem' }}>
         <div className="card">
           <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <UserIcon size={20} color="var(--blue-600)" /> Buat Akun Baru
           </h3>
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="form-label">Nama Lengkap</label>
+              <label className="form-label">Nama Lengkap / Perusahaan</label>
               <input type="text" className="form-input" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Budi Santoso" />
             </div>
             <div className="form-group">
@@ -79,7 +88,7 @@ export default function UsersPage() {
         </div>
 
         <div className="card">
-          <h3 style={{ marginBottom: '1.5rem' }}>Daftar Pengguna Aktif</h3>
+          <h3 style={{ marginBottom: '1.5rem' }}>Daftar Pengguna Aktif & Permohonan Akun</h3>
           <div className="table-container">
             <table className="data-table">
               <thead>
@@ -87,7 +96,9 @@ export default function UsersPage() {
                   <th>Nama Lengkap</th>
                   <th>Email</th>
                   <th>Role</th>
+                  <th>Status Akun</th>
                   <th>Tanggal Bergabung</th>
+                  <th>Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -100,7 +111,29 @@ export default function UsersPage() {
                         {u.role}
                       </span>
                     </td>
+                    <td>
+                      {u.isApproved !== false ? (
+                        <span className="badge badge-green" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                          <CheckCircle size={12} /> Aktif / Disetujui
+                        </span>
+                      ) : (
+                        <span className="badge badge-orange" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                          <Clock size={12} /> Pending Approval
+                        </span>
+                      )}
+                    </td>
                     <td>{new Date(u.createdAt).toLocaleDateString('id-ID')}</td>
+                    <td>
+                      {u.isApproved === false && (
+                        <button 
+                          onClick={() => handleApprove(u.id)}
+                          className="btn btn-primary"
+                          style={{ padding: '0.25rem 0.6rem', fontSize: '0.75rem', backgroundColor: '#16a34a' }}
+                        >
+                          Setujui (Approve)
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

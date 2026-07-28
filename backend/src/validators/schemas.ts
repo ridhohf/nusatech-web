@@ -12,6 +12,11 @@ export const registerSchema = z.object({
   role: z.enum(['INTERNAL', 'CLIENT']),
 });
 
+export const forgotPasswordSchema = z.object({
+  email: z.string().email('Format email tidak valid'),
+  newPassword: z.string().min(6, 'Password minimal 6 karakter'),
+});
+
 export const inventorySchema = z.object({
   jenisBarang: z.string().min(1, 'Jenis barang wajib diisi'),
   specBarang: z.string().min(1, 'Spesifikasi wajib diisi'),

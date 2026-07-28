@@ -19,3 +19,10 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
     next(error);
   }
 };
+
+export const approveUser = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const user = await userService.approveUser(req.params.id);
+    res.json(formatSuccess(user, 'Akun berhasil disetujui'));
+  } catch (error) { next(error); }
+};
