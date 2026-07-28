@@ -8,25 +8,35 @@ export default function PageNavigationLoader() {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
 
-  // Trigger full-screen loading state when URL pathname or search params change
+  const isDashboardRoute = pathname.startsWith('/internal') || pathname.startsWith('/client');
+
+  // Trigger full-screen loading state when URL pathname or search params change (except inside dashboard)
   useEffect(() => {
-    // Keep full-screen loader visible for a brief moment after route change
+    if (isDashboardRoute) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 450); // 450ms full-screen loading delay
+    }, 450);
 
     return () => clearTimeout(timer);
-  }, [pathname, searchParams]);
+  }, [pathname, searchParams, isDashboardRoute]);
 
-  // Intercept all internal link clicks to cover the screen IMMEDIATELY before navigation occurs
+  // Intercept link clicks, skipping internal/client dashboard menu navigation
   useEffect(() => {
     const handleAnchorClick = (e: MouseEvent) => {
       const target = (e.target as HTMLElement).closest('a');
       if (target && target.href && target.href.startsWith(window.location.origin)) {
         const targetUrl = new URL(target.href);
+        // Do NOT show loading if target is inside /internal or /client dashboard
+        if (targetUrl.pathname.startsWith('/internal') || targetUrl.pathname.startsWith('/client')) {
+          return;
+        }
         if (targetUrl.pathname !== window.location.pathname) {
-          setLoading(true); // Lock & cover screen immediately
+          setLoading(true);
         }
       }
     };
@@ -35,7 +45,7 @@ export default function PageNavigationLoader() {
     return () => window.removeEventListener('click', handleAnchorClick);
   }, []);
 
-  if (!loading) return null;
+  if (!loading || isDashboardRoute) return null;
 
   return (
     <div style={{
