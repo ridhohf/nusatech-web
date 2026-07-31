@@ -3,44 +3,78 @@ type CacheItem = {
   timestamp: number;
 };
 
-const cacheMap = new Map<string, CacheItem>();
+// Fallback in-memory map for SSR
+const memoryMap = new Map<string, CacheItem>();
 
 export const dataCache = {
   /**
-   * Get cached data if available and not expired (default TTL: 5 minutes)
+   * Get cached data from localStorage (or memory during SSR).
+   * Survives browser refreshes and page switches permanently.
    */
-  get<T = any>(key: string, maxAgeMs = 5 * 60 * 1000): T | null {
-    const item = cacheMap.get(key);
-    if (!item) return null;
-    if (Date.now() - item.timestamp > maxAgeMs) {
-      cacheMap.delete(key);
+  get<T = any>(key: string, maxAgeMs = 30 * 60 * 1000): T | null {
+    if (typeof window === 'undefined') {
+      const item = memoryMap.get(key);
+      if (!item || Date.now() - item.timestamp > maxAgeMs) return null;
+      return item.data as T;
+    }
+
+    try {
+      const raw = localStorage.getItem(`nusa_cache_${key}`);
+      if (!raw) return null;
+      const item: CacheItem = JSON.parse(raw);
+      if (Date.now() - item.timestamp > maxAgeMs) {
+        localStorage.removeItem(`nusa_cache_${key}`);
+        return null;
+      }
+      return item.data as T;
+    } catch {
       return null;
     }
-    return item.data as T;
   },
 
   /**
-   * Store data in memory cache
+   * Store data in localStorage cache
    */
   set(key: string, data: any): void {
-    cacheMap.set(key, {
-      data,
-      timestamp: Date.now(),
-    });
+    if (typeof window === 'undefined') {
+      memoryMap.set(key, { data, timestamp: Date.now() });
+      return;
+    }
+
+    try {
+      localStorage.setItem(`nusa_cache_${key}`, JSON.stringify({
+        data,
+        timestamp: Date.now(),
+      }));
+    } catch (e) {
+      console.warn('localStorage cache quota exceeded', e);
+    }
   },
 
   /**
    * Invalidate specific cache key or all keys matching a prefix
    */
   invalidate(keyPrefix?: string): void {
-    if (!keyPrefix) {
-      cacheMap.clear();
+    if (typeof window === 'undefined') {
+      memoryMap.clear();
       return;
     }
-    for (const key of cacheMap.keys()) {
-      if (key.startsWith(keyPrefix)) {
-        cacheMap.delete(key);
+
+    try {
+      if (!keyPrefix) {
+        Object.keys(localStorage).forEach(k => {
+          if (k.startsWith('nusa_cache_')) localStorage.removeItem(k);
+        });
+        return;
       }
+
+      Object.keys(localStorage).forEach(k => {
+        if (k.startsWith(`nusa_cache_${keyPrefix}`)) {
+          localStorage.removeItem(k);
+        }
+      });
+    } catch (e) {
+      console.error(e);
     }
   },
 };
