@@ -3,21 +3,32 @@
 import { useState, useEffect } from 'react';
 import apiClient from '@/api/client';
 import { User as UserIcon, CheckCircle, Clock } from 'lucide-react';
+import { dataCache } from '@/utils/dataCache';
 
 export default function UsersPage() {
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<any[]>(() => dataCache.get('/users') || []);
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(!dataCache.get('/users'));
   
   const [formData, setFormData] = useState({
     name: '', email: '', password: '', role: 'CLIENT'
   });
 
   const fetchUsers = async () => {
+    const cached = dataCache.get('/users');
+    if (cached) {
+      setUsers(cached);
+      setFetching(false);
+    }
+
     try {
       const res = await apiClient.get('/users');
       setUsers(res.data);
+      dataCache.set('/users', res.data);
     } catch (err) {
       console.error(err);
+    } finally {
+      setFetching(false);
     }
   };
 
@@ -31,7 +42,8 @@ export default function UsersPage() {
     try {
       await apiClient.post('/users', formData);
       setFormData({ name: '', email: '', password: '', role: 'CLIENT' });
-      fetchUsers();
+      dataCache.invalidate('/users');
+      await fetchUsers();
     } catch (err) {
       alert('Gagal membuat akun user');
     } finally {
@@ -42,7 +54,8 @@ export default function UsersPage() {
   const handleApprove = async (id: string) => {
     try {
       await apiClient.patch(`/users/${id}/approve`);
-      fetchUsers();
+      dataCache.invalidate('/users');
+      await fetchUsers();
     } catch (err) {
       alert('Gagal menyetujui akun');
     }
@@ -136,6 +149,9 @@ export default function UsersPage() {
                     </td>
                   </tr>
                 ))}
+                {users.length === 0 && !fetching && (
+                  <tr><td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>Belum ada data pengguna</td></tr>
+                )}
               </tbody>
             </table>
           </div>

@@ -3,17 +3,9 @@
 import { useState, useEffect } from 'react';
 import apiClient from '@/api/client';
 import { useAuthStore } from '@/store/useAuthStore';
+import { dataCache } from '@/utils/dataCache';
 
 const STATUS_STEPS = ['PENDING', 'INSPEKSI', 'WAITING_MATERIAL', 'EKSEKUSI', 'QC', 'FINISH'];
-
-const STATUS_LABELS: Record<string, string> = {
-  PENDING: 'PENDING',
-  INSPEKSI: 'INSPEKSI',
-  WAITING_MATERIAL: 'WAITING\nMATERIAL',
-  EKSEKUSI: 'EKSEKUSI',
-  QC: 'QC',
-  FINISH: 'FINISH',
-};
 
 const StatusStepper = ({ currentStatus }: { currentStatus: string }) => {
   const currentIndex = STATUS_STEPS.indexOf(currentStatus);
@@ -55,11 +47,18 @@ const StatusStepper = ({ currentStatus }: { currentStatus: string }) => {
 };
 
 export default function ClientPage() {
-  const [inspections, setInspections] = useState([]);
+  const [inspections, setInspections] = useState<any[]>(() => dataCache.get('/client-inspections') || []);
   const { user } = useAuthStore();
 
   useEffect(() => {
-    apiClient.get('/inspections').then(res => setInspections(res.data)).catch(console.error);
+    const cached = dataCache.get('/client-inspections');
+    if (cached) setInspections(cached);
+
+    apiClient.get('/inspections').then(res => {
+      const insData = res.data.data || res.data;
+      setInspections(insData);
+      dataCache.set('/client-inspections', insData);
+    }).catch(console.error);
   }, []);
 
   const stats = {

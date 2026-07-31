@@ -1,18 +1,40 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import apiClient from '@/api/client';
 import { PackageSearch, Wrench, CheckCircle, Clock } from 'lucide-react';
-import { useFetch } from '@/hooks/useFetch';
-import { inspectionApi } from '@/api/endpoints';
 import { StatCard } from '@/components/ui/Card';
 import { StatusBadge, Badge } from '@/components/ui/Badge';
 import { DataTable } from '@/components/ui/DataTable';
-import { formatDate, formatShortId } from '@/utils/format';
+import { formatDate } from '@/utils/format';
+import { dataCache } from '@/utils/dataCache';
 
 export default function InternalDashboard() {
-  const { data: inspections, loading, error } = useFetch<any[]>(() => inspectionApi.getAll());
+  const [inspections, setInspections] = useState<any[]>(() => dataCache.get('/inspections') || []);
+  const [fetching, setFetching] = useState(!dataCache.get('/inspections'));
 
-  if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Memuat data dashboard...</div>;
-  if (error) return <div style={{ padding: '2rem', color: 'red', textAlign: 'center' }}>Error: {error}</div>;
+  const fetchData = async () => {
+    const cached = dataCache.get('/inspections');
+    if (cached) {
+      setInspections(cached);
+      setFetching(false);
+    }
+
+    try {
+      const res = await apiClient.get('/inspections');
+      const insData = res.data.data || res.data;
+      setInspections(insData);
+      dataCache.set('/inspections', insData);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setFetching(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const data = inspections || [];
 
@@ -35,9 +57,23 @@ export default function InternalDashboard() {
     .slice(0, 5);
 
   const columns = [
-    { header: 'ID Pekerjaan', accessor: (row: any) => <span style={{ fontWeight: 600, color: 'var(--blue-700)' }}>{formatShortId(row.id)}</span> },
+    {
+      header: 'Perusahaan (Kode)',
+      accessor: (row: any) => (
+        row.company ? (
+          <div>
+            <span style={{ backgroundColor: 'var(--blue-100)', color: 'var(--blue-800)', padding: '0.15rem 0.4rem', borderRadius: '0.25rem', fontSize: '0.75rem', fontWeight: 700, marginRight: '0.4rem' }}>
+              {row.company.code}
+            </span>
+            <span style={{ fontWeight: 600 }}>{row.company.name}</span>
+          </div>
+        ) : (
+          <span style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>Non-klien</span>
+        )
+      )
+    },
     { header: 'PIC', accessor: (row: any) => row.pic?.name || '-' },
-    { header: 'Kategori', accessor: (row: any) => <Badge variant="blue">{row.kategori}</Badge> },
+    { header: 'Kategori', accessor: (row: any) => <Badge variant="blue">{row.kategoriPerbaikan || row.kategori}</Badge> },
     { header: 'Status', accessor: (row: any) => <StatusBadge status={row.status} /> },
     { header: 'Tanggal Masuk', accessor: (row: any) => formatDate(row.createdAt) },
   ];
@@ -57,7 +93,7 @@ export default function InternalDashboard() {
 
       <div className="card">
         <h3 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Pekerjaan Aktif Terbaru</h3>
-        <DataTable columns={columns} data={activeJobs} keyExtractor={(r) => r.id} emptyMessage="Tidak ada pekerjaan aktif" />
+        <DataTable columns={columns} data={activeJobs} keyExtractor={(r) => r.id} emptyMessage={fetching ? "Memuat data terbaru..." : "Tidak ada pekerjaan aktif"} />
       </div>
     </div>
   );

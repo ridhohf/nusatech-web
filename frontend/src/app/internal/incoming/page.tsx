@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import apiClient from '@/api/client';
 import { ClipboardCheck, Plus, Building2, X, CheckCircle } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
+import { dataCache } from '@/utils/dataCache';
 
 interface Company {
   id: string;
@@ -15,9 +16,9 @@ interface Company {
 
 export default function IncomingPage() {
   const { user } = useAuthStore();
-  const [inspections, setInspections] = useState([]);
-  const [inventory, setInventory] = useState([]);
-  const [companies, setCompanies] = useState<Company[]>([]);
+  const [inspections, setInspections] = useState<any[]>(() => dataCache.get('/inspections') || []);
+  const [inventory, setInventory] = useState<any[]>(() => dataCache.get('/inventory') || []);
+  const [companies, setCompanies] = useState<Company[]>(() => dataCache.get('/companies') || []);
   
   // Form State
   const [companyId, setCompanyId] = useState('');
@@ -35,15 +36,34 @@ export default function IncomingPage() {
   const [companySuccessMessage, setCompanySuccessMessage] = useState('');
 
   const fetchData = async () => {
+    // 1. Render instantly from cache if available
+    const cachedIns = dataCache.get('/inspections');
+    const cachedInv = dataCache.get('/inventory');
+    const cachedComp = dataCache.get('/companies');
+
+    if (cachedIns) setInspections(cachedIns);
+    if (cachedInv) setInventory(cachedInv);
+    if (cachedComp) setCompanies(cachedComp);
+
+    // 2. Fetch fresh data in background
     try {
       const [insRes, invRes, compRes] = await Promise.all([
         apiClient.get('/inspections'),
         apiClient.get('/inventory'),
         apiClient.get('/companies'),
       ]);
-      setInspections(insRes.data.data || insRes.data);
-      setInventory(invRes.data);
-      setCompanies(compRes.data);
+
+      const insData = insRes.data.data || insRes.data;
+      const invData = invRes.data;
+      const compData = compRes.data;
+
+      setInspections(insData);
+      setInventory(invData);
+      setCompanies(compData);
+
+      dataCache.set('/inspections', insData);
+      dataCache.set('/inventory', invData);
+      dataCache.set('/companies', compData);
     } catch (err) {
       console.error(err);
     }
@@ -72,7 +92,9 @@ export default function IncomingPage() {
       setCatatan('');
       setCompanyId('');
       setSelectedItems([]);
-      fetchData(); // Refresh list
+      dataCache.invalidate('/inspections');
+      dataCache.invalidate('/inventory');
+      await fetchData();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Gagal menyimpan registrasi inspeksi');
     } finally {
@@ -93,8 +115,10 @@ export default function IncomingPage() {
       });
 
       const createdCompany: Company = res.data;
-      setCompanies([...companies, createdCompany]);
-      setCompanyId(createdCompany.id); // Auto select new company
+      const updatedCompanies = [...companies, createdCompany];
+      setCompanies(updatedCompanies);
+      dataCache.set('/companies', updatedCompanies);
+      setCompanyId(createdCompany.id);
 
       setCompanySuccessMessage(`Perusahaan ${createdCompany.name} berhasil ditambahkan! Kode Unik: [${createdCompany.code}]`);
       setTimeout(() => {

@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react';
 import apiClient from '@/api/client';
 import { Package } from 'lucide-react';
+import { dataCache } from '@/utils/dataCache';
 
 export default function InventoryPage() {
-  const [inventory, setInventory] = useState([]);
+  const [inventory, setInventory] = useState<any[]>(() => dataCache.get('/inventory') || []);
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(!dataCache.get('/inventory'));
   
   // Form State
   const [formData, setFormData] = useState({
@@ -14,11 +16,20 @@ export default function InventoryPage() {
   });
 
   const fetchInventory = async () => {
+    const cached = dataCache.get('/inventory');
+    if (cached) {
+      setInventory(cached);
+      setFetching(false);
+    }
+
     try {
       const res = await apiClient.get('/inventory');
       setInventory(res.data);
+      dataCache.set('/inventory', res.data);
     } catch (err) {
       console.error(err);
+    } finally {
+      setFetching(false);
     }
   };
 
@@ -36,7 +47,8 @@ export default function InventoryPage() {
         harga: Number(formData.harga)
       });
       setFormData({ jenisBarang: '', specBarang: '', kodeBarang: '', quantity: 1, unitOfIssue: 'Pcs', harga: 0 });
-      fetchInventory();
+      dataCache.invalidate('/inventory');
+      await fetchInventory();
     } catch (err) {
       alert('Gagal menambah inventori');
     } finally {
@@ -127,7 +139,7 @@ export default function InventoryPage() {
                     </td>
                   </tr>
                 ))}
-                {inventory.length === 0 && (
+                {inventory.length === 0 && !fetching && (
                   <tr><td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>Belum ada data inventori</td></tr>
                 )}
               </tbody>
