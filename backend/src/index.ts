@@ -11,6 +11,7 @@ import inventoryRoutes from './routes/inventory.routes';
 import inspectionRoutes from './routes/inspection.routes';
 import supplierRoutes from './routes/supplier.routes';
 import userRoutes from './routes/user.routes';
+import companyRoutes from './routes/company.routes';
 
 if (!process.env.JWT_SECRET) {
   console.error('WARNING: JWT_SECRET environment variable is not set!');
@@ -71,6 +72,7 @@ app.use('/api/inventory', authenticate, inventoryRoutes);
 app.use('/api/inspections', authenticate, inspectionRoutes);
 app.use('/api/suppliers', authenticate, supplierRoutes);
 app.use('/api/users', authenticate, userRoutes);
+app.use('/api/companies', authenticate, companyRoutes);
 
 // ─── Global Error Handler ────────────────────────────────────────────────────
 app.use(errorHandler);

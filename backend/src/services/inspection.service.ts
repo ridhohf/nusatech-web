@@ -3,13 +3,18 @@ import { prisma } from '../prisma';
 export const inspectionService = {
   async getAll() {
     return prisma.inspection.findMany({
-      include: { pic: { select: { id: true, name: true, email: true } }, items: { include: { inventory: true } } },
+      include: {
+        pic: { select: { id: true, name: true, email: true } },
+        company: true,
+        items: { include: { inventory: true } },
+      },
       orderBy: { createdAt: 'desc' },
     });
   },
 
   async create(data: {
     picId: string;
+    companyId?: string;
     kategoriPerbaikan: 'GANTI' | 'FABRIKASI' | 'REPAIR';
     catatan?: string;
     items?: { inventoryId: string; quantityUsed: number }[];
@@ -35,13 +40,18 @@ export const inspectionService = {
       return tx.inspection.create({
         data: {
           picId: data.picId,
+          companyId: data.companyId,
           kategoriPerbaikan: data.kategoriPerbaikan,
           catatan: data.catatan,
           items: data.items && data.items.length > 0
             ? { create: data.items.map(i => ({ inventoryId: i.inventoryId, quantityUsed: i.quantityUsed })) }
             : undefined,
         },
-        include: { pic: { select: { id: true, name: true } }, items: { include: { inventory: true } } },
+        include: {
+          pic: { select: { id: true, name: true } },
+          company: true,
+          items: { include: { inventory: true } },
+        },
       });
     });
   },
@@ -54,7 +64,11 @@ export const inspectionService = {
         catatan,
         ...(fotoBukti && { fotoBukti })
       },
-      include: { pic: { select: { id: true, name: true } }, items: { include: { inventory: true } } },
+      include: {
+        pic: { select: { id: true, name: true } },
+        company: true,
+        items: { include: { inventory: true } },
+      },
     });
   },
 

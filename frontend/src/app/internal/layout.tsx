@@ -34,7 +34,7 @@ export default function InternalLayout({ children }: { children: React.ReactNode
 
   const navItems = [
     { name: 'Dashboard', path: '/internal', icon: LayoutDashboard },
-    { name: 'Barang Masuk', path: '/internal/incoming', icon: ClipboardCheck },
+    { name: 'Form Registrasi Baru', path: '/internal/incoming', icon: ClipboardCheck },
     { name: 'Inventori', path: '/internal/inventory', icon: Package },
     { name: 'Manajemen Perbaikan', path: '/internal/repairs', icon: Wrench },
     { name: 'Manajemen Akun', path: '/internal/users', icon: Users },

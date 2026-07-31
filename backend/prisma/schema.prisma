@@ -49,10 +49,24 @@ model Inventory {
   inspectionItems InspectionItem[]
 }
 
+model Company {
+  id          String       @id @default(uuid())
+  code        String       @unique
+  name        String
+  contact     String?
+  phone       String?
+  address     String?
+  inspections Inspection[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
 model Inspection {
   id               String   @id @default(uuid())
   picId            String
   pic              User     @relation(fields: [picId], references: [id])
+  companyId        String?
+  company          Company? @relation(fields: [companyId], references: [id])
   kategoriPerbaikan KategoriPerbaikan
   status           StatusPerbaikan @default(PENDING)
   catatan          String?
