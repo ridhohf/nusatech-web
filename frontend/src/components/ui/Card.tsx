@@ -1,16 +1,38 @@
 import React from 'react';
+import { cn } from '@/lib/utils';
 
-interface CardProps {
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
-  style?: React.CSSProperties;
   className?: string;
 }
 
-export function Card({ children, style, className }: CardProps) {
+export function Card({ children, className, ...props }: CardProps) {
   return (
-    <div className={`card ${className ?? ''}`} style={style}>
+    <div
+      className={cn(
+        'bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-2xl p-6 shadow-xs hover:shadow-md transition-all duration-200',
+        className
+      )}
+      {...props}
+    >
       {children}
     </div>
+  );
+}
+
+export function CardHeader({ children, className, ...props }: CardProps) {
+  return (
+    <div className={cn('flex flex-col gap-1.5 mb-4', className)} {...props}>
+      {children}
+    </div>
+  );
+}
+
+export function CardTitle({ children, className, ...props }: CardProps) {
+  return (
+    <h3 className={cn('text-lg font-bold text-slate-900 tracking-tight', className)} {...props}>
+      {children}
+    </h3>
   );
 }
 
@@ -20,17 +42,21 @@ interface StatCardProps {
   icon: React.ReactNode;
   color: string;
   bgColor: string;
+  className?: string;
 }
 
-export function StatCard({ title, value, icon, color, bgColor }: StatCardProps) {
+export function StatCard({ title, value, icon, color, bgColor, className }: StatCardProps) {
   return (
-    <Card style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-      <div style={{ padding: '1rem', borderRadius: '1rem', backgroundColor: bgColor, color }}>
+    <Card className={cn('flex items-center gap-4 p-5 hover:-translate-y-0.5', className)}>
+      <div
+        className="p-3.5 rounded-xl flex items-center justify-center transition-transform hover:scale-105"
+        style={{ backgroundColor: bgColor, color }}
+      >
         {icon}
       </div>
       <div>
-        <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--blue-900)', lineHeight: 1 }}>{value}</div>
-        <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.5rem', fontWeight: 500 }}>{title}</div>
+        <div className="text-3xl font-extrabold text-slate-900 tracking-tight leading-none">{value}</div>
+        <div className="text-xs font-semibold text-slate-500 mt-1.5">{title}</div>
       </div>
     </Card>
   );
