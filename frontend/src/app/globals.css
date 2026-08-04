@@ -48,6 +48,92 @@ body {
   font-family: var(--font-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
 }
 
+/* Tailwind Components Layer - Reusable Utilities via @apply */
+@layer components {
+  .card {
+    @apply bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-2xl p-6 shadow-xs hover:shadow-md transition-all duration-200;
+  }
+
+  .form-group {
+    @apply mb-4;
+  }
+
+  .form-label {
+    @apply block text-xs font-semibold text-slate-700 mb-1.5 uppercase tracking-wider;
+  }
+
+  .form-input {
+    @apply w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 transition-all focus:outline-none focus:border-blue-600 focus:ring-3 focus:ring-blue-100 placeholder:text-slate-400;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center font-semibold rounded-xl border border-slate-200 bg-white text-slate-700 px-4 py-2 text-sm shadow-2xs transition-all duration-150 active:scale-98 hover:bg-slate-50 disabled:opacity-50 disabled:pointer-events-none cursor-pointer gap-2;
+  }
+
+  .btn-primary {
+    @apply bg-blue-600 hover:bg-blue-700 text-white border-transparent shadow-xs focus-visible:ring-blue-500;
+  }
+
+  .page-header {
+    @apply mb-6 flex justify-between items-center flex-wrap gap-4;
+  }
+
+  .page-title {
+    @apply text-2xl font-extrabold text-blue-900 tracking-tight;
+  }
+
+  .table-container {
+    @apply overflow-x-auto rounded-xl border border-slate-200/80 bg-white shadow-2xs;
+  }
+
+  .data-table {
+    @apply w-full border-collapse text-left text-sm;
+  }
+
+  .data-table th {
+    @apply bg-slate-50/90 font-bold text-slate-600 px-4 py-3 border-b border-slate-200 text-xs uppercase tracking-wider;
+  }
+
+  .data-table td {
+    @apply px-4 py-3.5 border-b border-slate-100 text-slate-700;
+  }
+
+  .data-table tbody tr:hover {
+    @apply bg-slate-50/80 transition-colors;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold border border-slate-200 shadow-2xs;
+  }
+
+  .badge-blue {
+    @apply bg-blue-50 text-blue-700 border-blue-200/70;
+  }
+
+  .badge-orange {
+    @apply bg-amber-50 text-amber-700 border-amber-200/70;
+  }
+
+  .badge-green {
+    @apply bg-emerald-50 text-emerald-700 border-emerald-200/70;
+  }
+
+  .badge-red {
+    @apply bg-rose-50 text-rose-700 border-rose-200/70;
+  }
+
+  .auth-container {
+    @apply min-h-screen flex items-center justify-center bg-slate-900 p-6;
+    background-image: 
+      radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.25) 0%, transparent 60%),
+      radial-gradient(circle at 85% 85%, rgba(30, 58, 138, 0.3) 0%, transparent 50%);
+  }
+
+  .auth-card {
+    @apply w-full max-w-md bg-white p-8 rounded-2xl shadow-2xl border border-slate-100;
+  }
+}
+
 /* Loading Bar Animation */
 .top-loader-bar {
   position: fixed;
