@@ -71,7 +71,6 @@ export default function ClientPage() {
     <div>
       <div className="page-header">
         <h1 className="page-title">Monitoring Status Perbaikan</h1>
-        <p style={{ color: 'var(--text-secondary)' }}>Pantau secara real-time status perbaikan peralatan Anda.</p>
       </div>
 
       {/* Stats */}

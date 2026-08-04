@@ -109,7 +109,6 @@ export default function RepairManagementPage() {
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <h1 className="page-title">Manajemen Perbaikan</h1>
-          <p style={{ color: 'var(--text-secondary)' }}>Perbarui dan pantau status setiap pekerjaan perbaikan aktif.</p>
         </div>
         <Button onClick={handleExportCSV} variant="ghost" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'white' }}>
           <Download size={18} /> Download Laporan CSV

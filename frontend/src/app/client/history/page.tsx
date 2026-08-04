@@ -17,7 +17,6 @@ export default function ClientHistoryPage() {
     <div>
       <div className="page-header">
         <h1 className="page-title">Riwayat Perbaikan</h1>
-        <p style={{ color: 'var(--text-secondary)' }}>Daftar semua pekerjaan yang telah selesai dikerjakan.</p>
       </div>
 
       <div className="card">

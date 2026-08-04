@@ -43,19 +43,22 @@ app.use(cors({
   maxAge: 86400,
 }));
 
-// Rate Limiter — General: 100 req per 15 min
+// Trust proxy (required for Vercel/Render serverless rate limiting to read correct client IPs)
+app.set('trust proxy', 1);
+
+// Rate Limiter — General: 5000 req per 15 min
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 5000,
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, message: 'Too many requests, please try again later.' },
 }));
 
-// Rate Limiter — Auth: 10 attempts per 15 min (brute-force protection)
+// Rate Limiter — Auth: 50 attempts per 15 min (brute-force protection)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: 50,
   message: { success: false, message: 'Too many login attempts, please try again in 15 minutes.' },
 });
 

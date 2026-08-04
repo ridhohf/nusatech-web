@@ -173,7 +173,6 @@ export default function InternalDashboard() {
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div>
           <h1 className="page-title">Dashboard Overview</h1>
-          <p style={{ color: 'var(--text-secondary)', margin: 0 }}>Ringkasan status pekerjaan dan inventori secara real-time.</p>
         </div>
         <Link href="/internal/incoming" className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
           <Plus size={18} /> Registrasi Proyek Baru

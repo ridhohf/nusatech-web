@@ -177,10 +177,7 @@ export default function IncomingPage() {
   return (
     <div>
       <div className="page-header" style={{ marginBottom: '1.5rem' }}>
-        <h1 className="page-title">Form Registrasi Baru & Inspeksi</h1>
-        <p style={{ color: 'var(--text-secondary)' }}>
-          Registrasi penerimaan barang dari klien terdaftar.
-        </p>
+        <h1 className="page-title">Form Registrasi Baru</h1>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1.05fr 1.7fr', gap: '1.75rem', alignItems: 'start' }}>

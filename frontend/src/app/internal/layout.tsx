@@ -45,10 +45,7 @@ export default function InternalLayout({ children }: { children: React.ReactNode
       {/* Sidebar */}
       <aside className="w-72 bg-white border-r border-slate-200/80 flex flex-col sticky top-0 h-screen shadow-2xs z-20">
         <div className="p-6 flex items-center gap-3 font-extrabold text-blue-900 border-b border-slate-200/80 text-xl tracking-tight">
-          <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-xs">
-            N
-          </div>
-          <span>Nusatech MRO</span>
+          <span>Nusatech</span>
         </div>
 
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">

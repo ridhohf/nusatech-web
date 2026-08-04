@@ -60,7 +60,6 @@ export default function InventoryPage() {
     <div>
       <div className="page-header">
         <h1 className="page-title">Manajemen Inventori</h1>
-        <p style={{ color: 'var(--text-secondary)' }}>Kelola data material, sparepart, dan aksesori.</p>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2.5fr', gap: '2rem' }}>

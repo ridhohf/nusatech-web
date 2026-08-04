@@ -5,9 +5,10 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { LayoutDashboard, ClipboardList, LogOut } from 'lucide-react';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
-  const { user, logout, token } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
@@ -37,52 +38,63 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   ];
 
   return (
-    <div className="app-container">
-      <aside className="sidebar">
-        <div className="sidebar-logo">
-          <div style={{ backgroundColor: 'var(--blue-600)', color: 'white', padding: '0.5rem', borderRadius: '0.5rem' }}>
-            <ClipboardList size={24} />
-          </div>
+    <div className="flex min-h-screen bg-slate-50 font-sans">
+      {/* Sidebar */}
+      <aside className="w-72 bg-white border-r border-slate-200/80 flex flex-col sticky top-0 h-screen shadow-2xs z-20">
+        <div className="p-6 flex items-center gap-3 font-extrabold text-blue-900 border-b border-slate-200/80 text-xl tracking-tight">
           <div>
-            <div style={{ fontSize: '1rem' }}>Nusatech</div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 400 }}>Portal Klien</div>
+            <div className="text-base font-extrabold">Nusatech</div>
+            <div className="text-[10px] text-slate-400 font-medium">Portal Klien</div>
           </div>
         </div>
 
-        <nav className="sidebar-nav" style={{ flex: 1 }}>
-          <div style={{ marginBottom: '0.5rem', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', padding: '0 1rem' }}>
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+          <div className="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
             Monitoring
           </div>
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.path;
             return (
-              <Link href={item.path} key={item.path} className={`nav-item ${isActive ? 'active' : ''}`}>
-                <Icon size={20} />
+              <Link
+                href={item.path}
+                key={item.path}
+                className={cn(
+                  'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150',
+                  isActive
+                    ? 'bg-blue-50 text-blue-700 shadow-2xs font-bold'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                )}
+              >
+                <Icon size={20} className={isActive ? 'text-blue-600' : 'text-slate-400'} />
                 <span>{item.name}</span>
               </Link>
             );
           })}
         </nav>
 
-        <div style={{ padding: '1rem', borderTop: '1px solid var(--border-color)', marginTop: 'auto' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-            <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '50%', backgroundColor: 'var(--blue-100)', color: 'var(--blue-700)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600 }}>
+        <div className="p-4 border-t border-slate-200/80 mt-auto bg-slate-50/50">
+          <div className="flex items-center gap-3 mb-3 p-1">
+            <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm border border-blue-200">
               {user.name.charAt(0)}
             </div>
-            <div>
-              <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{user.name}</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Klien</div>
+            <div className="overflow-hidden">
+              <div className="font-bold text-sm text-slate-900 truncate">{user.name}</div>
+              <div className="text-xs font-medium text-slate-500">Klien</div>
             </div>
           </div>
-          <button onClick={handleLogout} className="btn" style={{ width: '100%', color: '#b91c1c', backgroundColor: '#fef2f2', justifyContent: 'flex-start' }}>
-            <LogOut size={18} />
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 transition-colors cursor-pointer border border-rose-200/60"
+          >
+            <LogOut size={16} />
             <span>Logout</span>
           </button>
         </div>
       </aside>
 
-      <main className="main-content">
+      {/* Main Content */}
+      <main className="flex-1 p-8 md:p-10 overflow-y-auto bg-gradient-to-br from-slate-50 via-slate-50 to-blue-50/40">
         {children}
       </main>
     </div>

@@ -65,7 +65,6 @@ export default function UsersPage() {
     <div>
       <div className="page-header">
         <h1 className="page-title">Manajemen Akun</h1>
-        <p style={{ color: 'var(--text-secondary)' }}>Buat dan kelola akses untuk staf Internal maupun Klien.</p>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2.5fr', gap: '2rem' }}>
