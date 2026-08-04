@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import apiClient from '@/api/client';
-import { ClipboardCheck, Plus, Building2, X, CheckCircle, Tag } from 'lucide-react';
+import { ClipboardCheck, Plus, Building2, X, CheckCircle } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { dataCache } from '@/utils/dataCache';
 
@@ -11,8 +11,10 @@ interface Company {
   code: string;
   regionCode?: string;
   name: string;
+  address?: string;
   contact?: string;
   phone?: string;
+  npwp?: string;
 }
 
 const SCOPE_OPTIONS = [
@@ -29,11 +31,6 @@ const EQUIPMENT_OPTIONS = [
   { code: '40', name: 'Lain-lain' },
 ];
 
-const REGION_OPTIONS = [
-  { code: '65', name: 'Riau' },
-  { code: '51', name: 'Sumbar' },
-];
-
 export default function IncomingPage() {
   const { user } = useAuthStore();
   const [inspections, setInspections] = useState<any[]>(() => dataCache.get('/inspections') || []);
@@ -48,12 +45,13 @@ export default function IncomingPage() {
   const [selectedItems, setSelectedItems] = useState<{inventoryId: string, quantityUsed: number}[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Modal State for Quick Add Company
+  // Modal State for Quick Add Company (Nama, Alamat, CP, No tel CP, NPWP)
   const [showCompanyModal, setShowCompanyModal] = useState(false);
-  const [newCompanyRegion, setNewCompanyRegion] = useState('65'); // Default Riau 65
   const [newCompanyName, setNewCompanyName] = useState('');
+  const [newCompanyAddress, setNewCompanyAddress] = useState('');
   const [newCompanyContact, setNewCompanyContact] = useState('');
   const [newCompanyPhone, setNewCompanyPhone] = useState('');
+  const [newCompanyNpwp, setNewCompanyNpwp] = useState('');
   const [addingCompany, setAddingCompany] = useState(false);
   const [companySuccessMessage, setCompanySuccessMessage] = useState('');
 
@@ -94,10 +92,6 @@ export default function IncomingPage() {
   useEffect(() => {
     fetchData();
   }, []);
-
-  // Compute Live Preview of Project Code: [ID Perusahaan]-[AABB]
-  const selectedCompany = companies.find(c => c.id === companyId);
-  const computedProjectCode = selectedCompany ? `${selectedCompany.code}-${scopeCode}${equipmentCode}` : `-----${scopeCode}${equipmentCode}`;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,9 +135,10 @@ export default function IncomingPage() {
     try {
       const res = await apiClient.post('/companies', {
         name: newCompanyName.trim(),
-        regionCode: newCompanyRegion,
+        address: newCompanyAddress.trim() || undefined,
         contact: newCompanyContact.trim() || undefined,
         phone: newCompanyPhone.trim() || undefined,
+        npwp: newCompanyNpwp.trim() || undefined,
       });
 
       const createdCompany: Company = res.data;
@@ -152,14 +147,15 @@ export default function IncomingPage() {
       dataCache.set('/companies', updatedCompanies);
       setCompanyId(createdCompany.id);
 
-      const regionName = newCompanyRegion === '65' ? 'Riau' : 'Sumbar';
-      setCompanySuccessMessage(`Perusahaan ${createdCompany.name} (${regionName}) berhasil ditambahkan! ID Perusahaan: [${createdCompany.code}]`);
+      setCompanySuccessMessage(`Perusahaan ${createdCompany.name} berhasil ditambahkan! ID Perusahaan: [${createdCompany.code}]`);
       setTimeout(() => {
         setCompanySuccessMessage('');
         setShowCompanyModal(false);
         setNewCompanyName('');
+        setNewCompanyAddress('');
         setNewCompanyContact('');
         setNewCompanyPhone('');
+        setNewCompanyNpwp('');
       }, 1400);
     } catch (err: any) {
       alert(err.response?.data?.message || 'Gagal menambahkan perusahaan.');
@@ -381,7 +377,7 @@ export default function IncomingPage() {
         </div>
       </div>
 
-      {/* MODAL: TAMBAH PERUSAHAAN BARU (RIAU / SUMBAR) */}
+      {/* MODAL: TAMBAH PERUSAHAAN BARU (Nama, Alamat, CP, No tel CP, NPWP) */}
       {showCompanyModal && (
         <div style={{
           position: 'fixed',
@@ -401,7 +397,7 @@ export default function IncomingPage() {
             backgroundColor: 'white',
             borderRadius: '1rem',
             width: '100%',
-            maxWidth: '440px',
+            maxWidth: '460px',
             padding: '1.75rem',
             boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
             position: 'relative',
@@ -425,26 +421,7 @@ export default function IncomingPage() {
               </div>
             ) : (
               <form onSubmit={handleCreateCompany}>
-                {/* WILAYAH SELECTION */}
-                <div className="form-group">
-                  <label className="form-label">Wilayah Operasional *</label>
-                  <select
-                    className="form-input"
-                    value={newCompanyRegion}
-                    onChange={(e) => setNewCompanyRegion(e.target.value)}
-                    required
-                  >
-                    {REGION_OPTIONS.map(reg => (
-                      <option key={reg.code} value={reg.code}>
-                        {reg.name}
-                      </option>
-                    ))}
-                  </select>
-                  <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-                    * Kode Perusahaan akan terbuat otomatis (contoh: Riau = 6501, Sumbar = 5101).
-                  </p>
-                </div>
-
+                {/* 1. NAMA PERUSAHAAN */}
                 <div className="form-group">
                   <label className="form-label">Nama Perusahaan *</label>
                   <input
@@ -457,23 +434,51 @@ export default function IncomingPage() {
                   />
                 </div>
 
+                {/* 2. ALAMAT PERUSAHAAN */}
                 <div className="form-group">
-                  <label className="form-label">Contact Person (PIC Perusahaan)</label>
+                  <label className="form-label">Alamat Perusahaan</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={newCompanyAddress}
+                    onChange={(e) => setNewCompanyAddress(e.target.value)}
+                    placeholder="misal: Jl. Sudirman No. 45, Pekanbaru, Riau"
+                  />
+                </div>
+
+                {/* 3. CONTACT PERSON (CP) */}
+                <div className="form-group">
+                  <label className="form-label">Contact Person (CP)</label>
                   <input
                     type="text"
                     className="form-input"
                     value={newCompanyContact}
                     onChange={(e) => setNewCompanyContact(e.target.value)}
+                    placeholder="Nama PIC Perusahaan"
                   />
                 </div>
 
-                <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                  <label className="form-label">Nomor Telepon / WhatsApp</label>
+                {/* 4. NO TEL CP */}
+                <div className="form-group">
+                  <label className="form-label">No. Telepon CP</label>
                   <input
                     type="text"
                     className="form-input"
                     value={newCompanyPhone}
                     onChange={(e) => setNewCompanyPhone(e.target.value)}
+                    placeholder="misal: 081234567890"
+                  />
+                </div>
+
+                {/* 5. NPWP */}
+                <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                  <label className="form-label">NPWP Perusahaan</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={newCompanyNpwp}
+                    onChange={(e) => setNewCompanyNpwp(e.target.value)}
+                    placeholder="misal: 01.234.567.8-901.000"
                   />
                 </div>
 
