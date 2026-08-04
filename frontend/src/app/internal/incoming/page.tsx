@@ -275,7 +275,6 @@ export default function IncomingPage() {
                 rows={3} 
                 value={catatan} 
                 onChange={(e) => setCatatan(e.target.value)}
-                placeholder="Detail kerusakan atau permintaan klien..."
               />
             </div>
 
@@ -429,7 +428,6 @@ export default function IncomingPage() {
                     className="form-input"
                     value={newCompanyName}
                     onChange={(e) => setNewCompanyName(e.target.value)}
-                    placeholder="misal: PT Restu / PT SPOS"
                     required
                   />
                 </div>
@@ -442,7 +440,6 @@ export default function IncomingPage() {
                     className="form-input"
                     value={newCompanyAddress}
                     onChange={(e) => setNewCompanyAddress(e.target.value)}
-                    placeholder="misal: Jl. Sudirman No. 45, Pekanbaru, Riau"
                   />
                 </div>
 
@@ -454,7 +451,6 @@ export default function IncomingPage() {
                     className="form-input"
                     value={newCompanyContact}
                     onChange={(e) => setNewCompanyContact(e.target.value)}
-                    placeholder="Nama PIC Perusahaan"
                   />
                 </div>
 
@@ -466,7 +462,6 @@ export default function IncomingPage() {
                     className="form-input"
                     value={newCompanyPhone}
                     onChange={(e) => setNewCompanyPhone(e.target.value)}
-                    placeholder="misal: 081234567890"
                   />
                 </div>
 
@@ -478,7 +473,6 @@ export default function IncomingPage() {
                     className="form-input"
                     value={newCompanyNpwp}
                     onChange={(e) => setNewCompanyNpwp(e.target.value)}
-                    placeholder="misal: 01.234.567.8-901.000"
                   />
                 </div>
 
