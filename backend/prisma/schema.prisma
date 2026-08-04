@@ -52,6 +52,7 @@ model Inventory {
 model Company {
   id          String       @id @default(uuid())
   code        String       @unique
+  regionCode  String       @default("65")
   name        String
   contact     String?
   phone       String?
@@ -67,6 +68,9 @@ model Inspection {
   pic              User     @relation(fields: [picId], references: [id])
   companyId        String?
   company          Company? @relation(fields: [companyId], references: [id])
+  projectCode      String?
+  scopeCode        String?
+  equipmentCode    String?
   kategoriPerbaikan KategoriPerbaikan
   status           StatusPerbaikan @default(PENDING)
   catatan          String?

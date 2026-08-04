@@ -7,23 +7,42 @@ export const companyService = {
     });
   },
 
-  async createCompany(data: { name: string; contact?: string; phone?: string; address?: string }) {
-    // Calculate sequential unique 3-digit code (e.g. 001, 002, 003...)
-    const count = await prisma.company.count();
-    const lastCompany = await prisma.company.findFirst({
-      orderBy: { createdAt: 'desc' },
+  async createCompany(data: {
+    name: string;
+    regionCode?: string; // e.g. "65" (Riau), "51" (Sumbar)
+    contact?: string;
+    phone?: string;
+    address?: string;
+  }) {
+    const region = data.regionCode || '65';
+
+    // Find companies with code starting with the specified region code
+    const regionalCompanies = await prisma.company.findMany({
+      where: {
+        code: {
+          startsWith: region,
+        },
+      },
+      orderBy: {
+        code: 'desc',
+      },
     });
 
-    let nextNumber = count + 1;
-    if (lastCompany && !isNaN(parseInt(lastCompany.code, 10))) {
-      nextNumber = Math.max(nextNumber, parseInt(lastCompany.code, 10) + 1);
+    let nextSeq = 1;
+    if (regionalCompanies.length > 0) {
+      const topCode = regionalCompanies[0].code;
+      const seqPart = parseInt(topCode.slice(region.length), 10);
+      if (!isNaN(seqPart)) {
+        nextSeq = seqPart + 1;
+      }
     }
 
-    const formattedCode = String(nextNumber).padStart(3, '0');
+    const formattedCode = `${region}${String(nextSeq).padStart(2, '0')}`; // e.g. "6501", "6502", "5101"
 
     return prisma.company.create({
       data: {
         code: formattedCode,
+        regionCode: region,
         name: data.name,
         contact: data.contact,
         phone: data.phone,

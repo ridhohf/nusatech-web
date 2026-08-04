@@ -2,17 +2,37 @@
 
 import { useState, useEffect } from 'react';
 import apiClient from '@/api/client';
-import { ClipboardCheck, Plus, Building2, X, CheckCircle } from 'lucide-react';
+import { ClipboardCheck, Plus, Building2, X, CheckCircle, Tag } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { dataCache } from '@/utils/dataCache';
 
 interface Company {
   id: string;
   code: string;
+  regionCode?: string;
   name: string;
   contact?: string;
   phone?: string;
 }
+
+const SCOPE_OPTIONS = [
+  { code: '10', name: 'Overhaul Total', kategoriEnum: 'REPAIR' },
+  { code: '20', name: 'Overhaul Partial', kategoriEnum: 'REPAIR' },
+  { code: '30', name: 'Pengadaan Spare Part', kategoriEnum: 'GANTI' },
+  { code: '40', name: 'Tools', kategoriEnum: 'FABRIKASI' },
+];
+
+const EQUIPMENT_OPTIONS = [
+  { code: '10', name: 'Pompa' },
+  { code: '20', name: 'Motor Listrik' },
+  { code: '30', name: 'Turbin' },
+  { code: '40', name: 'Lain-lain' },
+];
+
+const REGION_OPTIONS = [
+  { code: '65', name: 'Riau' },
+  { code: '51', name: 'Sumbar' },
+];
 
 export default function IncomingPage() {
   const { user } = useAuthStore();
@@ -22,13 +42,15 @@ export default function IncomingPage() {
   
   // Form State
   const [companyId, setCompanyId] = useState('');
-  const [kategori, setKategori] = useState('REPAIR');
+  const [scopeCode, setScopeCode] = useState('10'); // AA
+  const [equipmentCode, setEquipmentCode] = useState('10'); // BB
   const [catatan, setCatatan] = useState('');
   const [selectedItems, setSelectedItems] = useState<{inventoryId: string, quantityUsed: number}[]>([]);
   const [loading, setLoading] = useState(false);
 
   // Modal State for Quick Add Company
   const [showCompanyModal, setShowCompanyModal] = useState(false);
+  const [newCompanyRegion, setNewCompanyRegion] = useState('65'); // Default Riau 65
   const [newCompanyName, setNewCompanyName] = useState('');
   const [newCompanyContact, setNewCompanyContact] = useState('');
   const [newCompanyPhone, setNewCompanyPhone] = useState('');
@@ -36,7 +58,7 @@ export default function IncomingPage() {
   const [companySuccessMessage, setCompanySuccessMessage] = useState('');
 
   const fetchData = async () => {
-    // 1. Render instantly from cache if available
+    // 1. Render instantly from cache
     const cachedIns = dataCache.get('/inspections');
     const cachedInv = dataCache.get('/inventory');
     const cachedComp = dataCache.get('/companies');
@@ -73,6 +95,10 @@ export default function IncomingPage() {
     fetchData();
   }, []);
 
+  // Compute Live Preview of Project Code: [ID Perusahaan]-[AABB]
+  const selectedCompany = companies.find(c => c.id === companyId);
+  const computedProjectCode = selectedCompany ? `${selectedCompany.code}-${scopeCode}${equipmentCode}` : `-----${scopeCode}${equipmentCode}`;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!companyId) {
@@ -80,12 +106,17 @@ export default function IncomingPage() {
       return;
     }
 
+    const matchedScope = SCOPE_OPTIONS.find(s => s.code === scopeCode);
+    const kategoriEnum = matchedScope ? matchedScope.kategoriEnum : 'REPAIR';
+
     setLoading(true);
     try {
       await apiClient.post('/inspections', {
         picId: user?.id,
         companyId,
-        kategoriPerbaikan: kategori,
+        scopeCode,
+        equipmentCode,
+        kategoriPerbaikan: kategoriEnum,
         catatan,
         items: selectedItems
       });
@@ -96,7 +127,7 @@ export default function IncomingPage() {
       dataCache.invalidate('/inventory');
       await fetchData();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Gagal menyimpan registrasi inspeksi');
+      alert(err.response?.data?.message || 'Gagal menyimpan registrasi pekerjaan');
     } finally {
       setLoading(false);
     }
@@ -110,6 +141,7 @@ export default function IncomingPage() {
     try {
       const res = await apiClient.post('/companies', {
         name: newCompanyName.trim(),
+        regionCode: newCompanyRegion,
         contact: newCompanyContact.trim() || undefined,
         phone: newCompanyPhone.trim() || undefined,
       });
@@ -120,14 +152,15 @@ export default function IncomingPage() {
       dataCache.set('/companies', updatedCompanies);
       setCompanyId(createdCompany.id);
 
-      setCompanySuccessMessage(`Perusahaan ${createdCompany.name} berhasil ditambahkan! Kode Unik: [${createdCompany.code}]`);
+      const regionName = newCompanyRegion === '65' ? 'Riau' : 'Sumbar';
+      setCompanySuccessMessage(`Perusahaan ${createdCompany.name} (${regionName}) berhasil ditambahkan! ID Perusahaan: [${createdCompany.code}]`);
       setTimeout(() => {
         setCompanySuccessMessage('');
         setShowCompanyModal(false);
         setNewCompanyName('');
         setNewCompanyContact('');
         setNewCompanyPhone('');
-      }, 1200);
+      }, 1400);
     } catch (err: any) {
       alert(err.response?.data?.message || 'Gagal menambahkan perusahaan.');
     } finally {
@@ -150,11 +183,11 @@ export default function IncomingPage() {
       <div className="page-header" style={{ marginBottom: '1.5rem' }}>
         <h1 className="page-title">Form Registrasi Baru & Inspeksi</h1>
         <p style={{ color: 'var(--text-secondary)' }}>
-          Registrasi penerimaan barang dari klien terdaftar dan catat hasil inspeksi awal.
+          Registrasi penerimaan barang dari klien terdaftar.
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.75fr', gap: '1.75rem', alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1.05fr 1.7fr', gap: '1.75rem', alignItems: 'start' }}>
         {/* FORM REGISTRASI BARU */}
         <div className="card">
           <h3 style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--blue-900)' }}>
@@ -167,7 +200,7 @@ export default function IncomingPage() {
               <input type="text" className="form-input" value={user?.name || ''} disabled style={{ backgroundColor: '#f1f5f9' }} />
             </div>
 
-            {/* COMPANY SELECTION WITH + ADD COMPANY BUTTON */}
+            {/* COMPANY SELECTION */}
             <div className="form-group">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
                 <label className="form-label" style={{ marginBottom: 0 }}>Perusahaan Klien *</label>
@@ -204,21 +237,39 @@ export default function IncomingPage() {
                   </option>
                 ))}
               </select>
-
-              {companies.length === 0 && (
-                <p style={{ fontSize: '0.75rem', color: '#d97706', marginTop: '0.35rem' }}>
-                  * Belum ada perusahaan. Klik &quot;+ Tambah Perusahaan Baru&quot; di atas.
-                </p>
-              )}
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Kategori Perbaikan</label>
-              <select className="form-input" value={kategori} onChange={(e) => setKategori(e.target.value)}>
-                <option value="REPAIR">Repair (Perbaikan)</option>
-                <option value="GANTI">Ganti (Replace)</option>
-                <option value="FABRIKASI">Fabrikasi</option>
-              </select>
+            {/* SCOPE PEKERJAAN & JENIS PERALATAN */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+              <div className="form-group">
+                <label className="form-label">Scope Pekerjaan</label>
+                <select
+                  className="form-input"
+                  value={scopeCode}
+                  onChange={(e) => setScopeCode(e.target.value)}
+                >
+                  {SCOPE_OPTIONS.map(s => (
+                    <option key={s.code} value={s.code}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Jenis Peralatan</label>
+                <select
+                  className="form-input"
+                  value={equipmentCode}
+                  onChange={(e) => setEquipmentCode(e.target.value)}
+                >
+                  {EQUIPMENT_OPTIONS.map(eq => (
+                    <option key={eq.code} value={eq.code}>
+                      {eq.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div className="form-group">
@@ -267,46 +318,60 @@ export default function IncomingPage() {
             </div>
 
             <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }} disabled={loading}>
-              {loading ? 'Menyimpan...' : 'Simpan Registrasi'}
+              {loading ? 'Menyimpan...' : 'Simpan Registrasi Proyek'}
             </button>
           </form>
         </div>
 
-        {/* DAFTAR REGISTRASI & INSPEKSI TERBARU */}
+        {/* DAFTAR REGISTRASI TERBARU */}
         <div className="card">
           <h3 style={{ marginBottom: '1.25rem', color: 'var(--blue-900)' }}>Daftar Registrasi Terbaru</h3>
           <div className="table-container">
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Kode Unik & Perusahaan</th>
-                  <th>Kategori</th>
+                  <th>Kode Proyek</th>
+                  <th>Perusahaan Klien</th>
+                  <th>Scope & Peralatan</th>
                   <th>Status</th>
-                  <th>PIC</th>
                   <th>Tanggal</th>
                 </tr>
               </thead>
               <tbody>
-                {inspections.map((ins: any) => (
-                  <tr key={ins.id}>
-                    <td>
-                      {ins.company ? (
-                        <div>
-                          <span style={{ display: 'inline-block', backgroundColor: 'var(--blue-100)', color: 'var(--blue-800)', padding: '0.15rem 0.4rem', borderRadius: '0.25rem', fontSize: '0.75rem', fontWeight: 700, marginRight: '0.5rem' }}>
-                            {ins.company.code}
-                          </span>
-                          <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{ins.company.name}</span>
-                        </div>
-                      ) : (
-                        <span style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>Umum / Non-klien</span>
-                      )}
-                    </td>
-                    <td><span className="badge badge-blue">{ins.kategoriPerbaikan}</span></td>
-                    <td><span className="badge badge-orange">{ins.status}</span></td>
-                    <td>{ins.pic?.name}</td>
-                    <td>{new Date(ins.createdAt).toLocaleDateString('id-ID')}</td>
-                  </tr>
-                ))}
+                {inspections.map((ins: any) => {
+                  const scopeName = SCOPE_OPTIONS.find(s => s.code === ins.scopeCode)?.name || 'Perbaikan';
+                  const equipName = EQUIPMENT_OPTIONS.find(eq => eq.code === ins.equipmentCode)?.name || 'Unit';
+
+                  return (
+                    <tr key={ins.id}>
+                      <td>
+                        <span style={{
+                          fontFamily: 'monospace',
+                          backgroundColor: 'var(--blue-100)',
+                          color: 'var(--blue-900)',
+                          padding: '0.2rem 0.5rem',
+                          borderRadius: '0.35rem',
+                          fontSize: '0.85rem',
+                          fontWeight: 800,
+                          letterSpacing: '0.02em',
+                        }}>
+                          {ins.projectCode || (ins.company ? `${ins.company.code}-1010` : `#${ins.id.slice(-6).toUpperCase()}`)}
+                        </span>
+                      </td>
+                      <td>
+                        <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                          {ins.company ? ins.company.name : 'Non-klien'}
+                        </span>
+                      </td>
+                      <td style={{ fontSize: '0.85rem' }}>
+                        <div><strong>{scopeName}</strong></div>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>{equipName}</div>
+                      </td>
+                      <td><span className="badge badge-orange">{ins.status}</span></td>
+                      <td style={{ fontSize: '0.85rem' }}>{new Date(ins.createdAt).toLocaleDateString('id-ID')}</td>
+                    </tr>
+                  );
+                })}
                 {inspections.length === 0 && (
                   <tr><td colSpan={5} style={{ textAlign: 'center', padding: '2rem' }}>Belum ada data registrasi</td></tr>
                 )}
@@ -316,7 +381,7 @@ export default function IncomingPage() {
         </div>
       </div>
 
-      {/* MODAL: TAMBAH PERUSAHAAN BARU */}
+      {/* MODAL: TAMBAH PERUSAHAAN BARU (RIAU / SUMBAR) */}
       {showCompanyModal && (
         <div style={{
           position: 'fixed',
@@ -360,9 +425,25 @@ export default function IncomingPage() {
               </div>
             ) : (
               <form onSubmit={handleCreateCompany}>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
-                  Sistem akan secara otomatis memberikan **Kode Unik Berurutan** (contoh: 001, 002) untuk perusahaan ini.
-                </p>
+                {/* WILAYAH SELECTION */}
+                <div className="form-group">
+                  <label className="form-label">Wilayah Operasional *</label>
+                  <select
+                    className="form-input"
+                    value={newCompanyRegion}
+                    onChange={(e) => setNewCompanyRegion(e.target.value)}
+                    required
+                  >
+                    {REGION_OPTIONS.map(reg => (
+                      <option key={reg.code} value={reg.code}>
+                        {reg.name}
+                      </option>
+                    ))}
+                  </select>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                    * Kode Perusahaan akan terbuat otomatis (contoh: Riau = 6501, Sumbar = 5101).
+                  </p>
+                </div>
 
                 <div className="form-group">
                   <label className="form-label">Nama Perusahaan *</label>
@@ -371,6 +452,7 @@ export default function IncomingPage() {
                     className="form-input"
                     value={newCompanyName}
                     onChange={(e) => setNewCompanyName(e.target.value)}
+                    placeholder="misal: PT Restu / PT SPOS"
                     required
                   />
                 </div>

@@ -12,12 +12,13 @@ export const getCompanies = async (_req: Request, res: Response) => {
 
 export const createCompany = async (req: Request, res: Response) => {
   try {
-    const { name, contact, phone, address } = req.body;
+    const { name, regionCode, contact, phone, address } = req.body;
     if (!name || !name.trim()) {
       return res.status(400).json({ message: 'Company name is required.' });
     }
     const company = await companyService.createCompany({
       name: name.trim(),
+      regionCode: regionCode || '65',
       contact,
       phone,
       address,

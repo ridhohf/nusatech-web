@@ -15,10 +15,32 @@ export const inspectionService = {
   async create(data: {
     picId: string;
     companyId?: string;
-    kategoriPerbaikan: 'GANTI' | 'FABRIKASI' | 'REPAIR';
+    scopeCode?: string; // AA: 10, 20, 30, 40
+    equipmentCode?: string; // BB: 10, 20, 30, 40
+    kategoriPerbaikan?: 'GANTI' | 'FABRIKASI' | 'REPAIR';
     catatan?: string;
     items?: { inventoryId: string; quantityUsed: number }[];
   }) {
+    let projectCode: string | undefined = undefined;
+
+    // Calculate Project Code AABB if company is selected
+    if (data.companyId) {
+      const company = await prisma.company.findUnique({ where: { id: data.companyId } });
+      if (company) {
+        const scope = data.scopeCode || '10';
+        const equip = data.equipmentCode || '10';
+        projectCode = `${company.code}-${scope}${equip}`; // e.g. "6501-1010"
+      }
+    }
+
+    // Map scopeCode to kategoriPerbaikan enum if not provided directly
+    let kategoriEnum: 'GANTI' | 'FABRIKASI' | 'REPAIR' = data.kategoriPerbaikan || 'REPAIR';
+    if (!data.kategoriPerbaikan && data.scopeCode) {
+      if (data.scopeCode === '30') kategoriEnum = 'GANTI';
+      else if (data.scopeCode === '40') kategoriEnum = 'FABRIKASI';
+      else kategoriEnum = 'REPAIR';
+    }
+
     return prisma.$transaction(async (tx) => {
       // 1. Jika ada items, cek stok dan kurangi stok inventori
       if (data.items && data.items.length > 0) {
@@ -36,12 +58,15 @@ export const inspectionService = {
         }
       }
 
-      // 2. Buat inspeksinya
+      // 2. Buat registrasi inspeksi dengan projectCode AABB
       return tx.inspection.create({
         data: {
           picId: data.picId,
           companyId: data.companyId,
-          kategoriPerbaikan: data.kategoriPerbaikan,
+          projectCode,
+          scopeCode: data.scopeCode || '10',
+          equipmentCode: data.equipmentCode || '10',
+          kategoriPerbaikan: kategoriEnum,
           catatan: data.catatan,
           items: data.items && data.items.length > 0
             ? { create: data.items.map(i => ({ inventoryId: i.inventoryId, quantityUsed: i.quantityUsed })) }
