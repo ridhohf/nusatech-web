@@ -347,7 +347,7 @@ export default function IncomingPage() {
                           fontWeight: 800,
                           letterSpacing: '0.02em',
                         }}>
-                          {ins.projectCode || (ins.company ? `${ins.company.code}-1010` : `#${ins.id.slice(-6).toUpperCase()}`)}
+                          {ins.projectCode || `${ins.company?.code || '6501'}-${ins.scopeCode || '10'}${ins.equipmentCode || '10'}`}
                         </span>
                       </td>
                       <td>

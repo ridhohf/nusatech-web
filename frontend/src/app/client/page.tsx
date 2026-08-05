@@ -98,8 +98,8 @@ export default function ClientPage() {
             <div key={ins.id} className="card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--blue-800)' }}>
-                    #{ins.id.slice(-6).toUpperCase()}
+                  <div style={{ fontWeight: 800, fontSize: '1rem', fontFamily: 'monospace', color: 'var(--blue-900)' }}>
+                    {ins.projectCode || `${ins.company?.code || '6501'}-${ins.scopeCode || '10'}${ins.equipmentCode || '10'}`}
                   </div>
                   <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
                     PIC: {ins.pic?.name} · Masuk: {new Date(ins.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}

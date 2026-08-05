@@ -36,7 +36,9 @@ export default function ClientHistoryPage() {
             <tbody>
               {inspections.map((ins: any) => (
                 <tr key={ins.id}>
-                  <td style={{ fontWeight: 600, color: 'var(--blue-700)' }}>#{ins.id.slice(-6).toUpperCase()}</td>
+                  <td style={{ fontWeight: 800, fontFamily: 'monospace', color: 'var(--blue-900)' }}>
+                    {ins.projectCode || `${ins.company?.code || '6501'}-${ins.scopeCode || '10'}${ins.equipmentCode || '10'}`}
+                  </td>
                   <td><span className="badge badge-blue">{ins.kategoriPerbaikan}</span></td>
                   <td>{ins.pic?.name}</td>
                   <td>{ins.items?.length || 0} item</td>

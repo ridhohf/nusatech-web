@@ -130,7 +130,9 @@ export default function RepairManagementPage() {
                       [{ins.company.code}] {ins.company.name}
                     </span>
                   ) : (
-                    <span style={{ fontWeight: 700, color: 'var(--blue-800)' }}>#{ins.id.slice(-6).toUpperCase()}</span>
+                    <span style={{ fontWeight: 800, fontFamily: 'monospace', backgroundColor: 'var(--blue-100)', color: 'var(--blue-900)', padding: '0.2rem 0.5rem', borderRadius: '0.35rem', fontSize: '0.85rem' }}>
+                      {ins.projectCode || `${ins.company?.code || '6501'}-${ins.scopeCode || '10'}${ins.equipmentCode || '10'}`}
+                    </span>
                   )}
                   <StatusBadge status={ins.status} />
                   <Badge variant="blue">{ins.kategoriPerbaikan}</Badge>

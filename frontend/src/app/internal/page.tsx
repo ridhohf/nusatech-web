@@ -101,7 +101,7 @@ export default function InternalDashboard() {
           letterSpacing: '0.02em',
           display: 'inline-block',
         }}>
-          {row.projectCode || (row.company ? `${row.company.code}-1010` : `#${row.id.slice(-6).toUpperCase()}`)}
+          {row.projectCode || `${row.company?.code || '6501'}-${row.scopeCode || '10'}${row.equipmentCode || '10'}`}
         </span>
       )
     },
