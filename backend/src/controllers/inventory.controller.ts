@@ -15,3 +15,20 @@ export const createInventory = async (req: Request, res: Response, next: NextFun
     res.status(201).json(formatSuccess(item, 'Barang berhasil ditambahkan'));
   } catch (error) { next(error); }
 };
+
+export const updateInventoryStock = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const id = req.params.id as string;
+    const { deltaQuantity } = req.body;
+    const item = await inventoryService.updateStock(id, Number(deltaQuantity) || 0);
+    res.json(formatSuccess(item, 'Stok berhasil diperbarui'));
+  } catch (error) { next(error); }
+};
+
+export const deleteInventory = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const id = req.params.id as string;
+    await inventoryService.delete(id);
+    res.json(formatSuccess(null, 'Barang berhasil dihapus'));
+  } catch (error) { next(error); }
+};

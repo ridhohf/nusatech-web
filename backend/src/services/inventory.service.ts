@@ -23,4 +23,19 @@ export const inventoryService = {
   async findById(id: string) {
     return prisma.inventory.findUnique({ where: { id }, include: { supplier: true } });
   },
+
+  async updateStock(id: string, deltaQuantity: number) {
+    return prisma.inventory.update({
+      where: { id },
+      data: {
+        quantity: {
+          increment: deltaQuantity,
+        },
+      },
+    });
+  },
+
+  async delete(id: string) {
+    return prisma.inventory.delete({ where: { id } });
+  },
 };
