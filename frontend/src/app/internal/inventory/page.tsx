@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import apiClient from '@/api/client';
-import { Package, Search, Filter, Plus, Minus, Trash2, AlertTriangle, DollarSign, Boxes, TrendingUp } from 'lucide-react';
+import { Package, Search, Plus, Minus, Trash2, AlertTriangle, Boxes, TrendingUp } from 'lucide-react';
 import { dataCache } from '@/utils/dataCache';
 import { StatCard } from '@/components/ui/Card';
 
@@ -71,7 +71,6 @@ export default function InventoryPage() {
 
   const handleUpdateStock = async (id: string, deltaQuantity: number) => {
     try {
-      // Optimistic update
       const updated = inventory.map(item => {
         if (item.id === id) {
           const newQty = Math.max(0, item.quantity + deltaQuantity);
@@ -130,7 +129,7 @@ export default function InventoryPage() {
 
   return (
     <div>
-      <div className="page-header">
+      <div className="page-header" style={{ marginBottom: '1.5rem' }}>
         <h1 className="page-title">Manajemen Inventori</h1>
       </div>
 
@@ -159,10 +158,10 @@ export default function InventoryPage() {
         />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2.3fr', gap: '1.75rem', alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: '1.75rem', alignItems: 'start' }}>
         {/* FORM TAMBAH BARANG */}
-        <div className="card">
-          <h3 style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--blue-900)' }}>
+        <div className="card" style={{ padding: '1.5rem' }}>
+          <h3 style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--blue-900)', fontSize: '1.1rem', whiteSpace: 'nowrap' }}>
             <Package size={20} color="var(--blue-600)" /> Tambah Barang Baru
           </h3>
           <form onSubmit={handleSubmit}>
@@ -239,25 +238,25 @@ export default function InventoryPage() {
               />
             </div>
 
-            <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '0.75rem' }} disabled={loading}>
+            <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '0.5rem' }} disabled={loading}>
               {loading ? 'Menyimpan...' : 'Tambah ke Inventori'}
             </button>
           </form>
         </div>
 
         {/* DAFTAR INVENTORI & FILTER */}
-        <div className="card">
+        <div className="card" style={{ padding: '1.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
-            <h3 style={{ margin: 0, color: 'var(--blue-900)' }}>Daftar Inventori Gudang</h3>
+            <h3 style={{ margin: 0, color: 'var(--blue-900)', fontSize: '1.1rem' }}>Daftar Inventori Gudang</h3>
 
-            {/* 2. PENCARIAN & FILTER KATEGORI */}
+            {/* PENCARIAN & FILTER KATEGORI */}
             <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
               <div style={{ position: 'relative', minWidth: '180px' }}>
                 <Search size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
                 <input
                   type="text"
                   className="form-input"
-                  style={{ paddingLeft: '2.25rem', height: '38px', fontSize: '0.8rem' }}
+                  style={{ paddingLeft: '2.25rem', height: '38px', fontSize: '0.85rem' }}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -265,7 +264,7 @@ export default function InventoryPage() {
 
               <select
                 className="form-input"
-                style={{ width: 'auto', height: '38px', fontSize: '0.8rem' }}
+                style={{ width: 'auto', height: '38px', fontSize: '0.85rem' }}
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
               >
@@ -278,19 +277,19 @@ export default function InventoryPage() {
             </div>
           </div>
 
-          {/* 3. TABEL INVENTORI LENGKAP & HARGA */}
+          {/* TABEL INVENTORI LENGKAP & HARGA */}
           <div className="table-container">
-            <table className="data-table">
+            <table className="data-table" style={{ width: '100%', tableLayout: 'auto' }}>
               <thead>
                 <tr>
-                  <th>Kode</th>
-                  <th>Jenis</th>
-                  <th>Spesifikasi</th>
-                  <th>Stok</th>
-                  <th>Harga Satuan</th>
-                  <th>Total Nilai</th>
-                  <th>Status</th>
-                  <th style={{ textAlign: 'center' }}>Aksi Cepat</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>KODE</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>JENIS</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>SPESIFIKASI</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>STOK</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>HARGA SATUAN</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>TOTAL NILAI</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>STATUS</th>
+                  <th style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>AKSI CEPAT</th>
                 </tr>
               </thead>
               <tbody>
@@ -301,19 +300,21 @@ export default function InventoryPage() {
 
                   return (
                     <tr key={item.id}>
-                      <td style={{ fontWeight: 700, fontFamily: 'monospace', color: 'var(--blue-900)' }}>{item.kodeBarang}</td>
-                      <td>
+                      <td style={{ fontWeight: 700, fontFamily: 'monospace', color: 'var(--blue-900)', whiteSpace: 'nowrap' }}>
+                        {item.kodeBarang}
+                      </td>
+                      <td style={{ whiteSpace: 'nowrap' }}>
                         <span className="badge badge-blue">{item.jenisBarang}</span>
                       </td>
                       <td style={{ fontWeight: 500 }}>{item.specBarang}</td>
-                      <td>
+                      <td style={{ whiteSpace: 'nowrap' }}>
                         <span style={{ fontWeight: 800, color: qty <= 5 ? '#c2410c' : '#0f172a' }}>
                           {qty} {item.unitOfIssue}
                         </span>
                       </td>
-                      <td>Rp {harga.toLocaleString('id-ID')}</td>
-                      <td style={{ fontWeight: 600, color: '#15803d' }}>Rp {total.toLocaleString('id-ID')}</td>
-                      <td>
+                      <td style={{ whiteSpace: 'nowrap' }}>Rp {harga.toLocaleString('id-ID')}</td>
+                      <td style={{ fontWeight: 600, color: '#15803d', whiteSpace: 'nowrap' }}>Rp {total.toLocaleString('id-ID')}</td>
+                      <td style={{ whiteSpace: 'nowrap' }}>
                         {qty > 5 ? (
                           <span className="badge badge-green">AMAN</span>
                         ) : (
@@ -321,8 +322,8 @@ export default function InventoryPage() {
                         )}
                       </td>
 
-                      {/* 4. AKSI CEPAT (RESTOCK & HAPUS) */}
-                      <td>
+                      {/* AKSI CEPAT (RESTOCK & HAPUS) */}
+                      <td style={{ whiteSpace: 'nowrap' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
                           <button
                             type="button"
@@ -340,6 +341,7 @@ export default function InventoryPage() {
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: '0.2rem',
+                              whiteSpace: 'nowrap',
                             }}
                           >
                             <Plus size={12} /> Restock +5
