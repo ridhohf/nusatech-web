@@ -2,9 +2,8 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import apiClient from '@/api/client';
-import { Package, Search, Plus, Minus, Trash2, AlertTriangle, Boxes, TrendingUp } from 'lucide-react';
+import { Package, Search, Plus, Minus, Trash2 } from 'lucide-react';
 import { dataCache } from '@/utils/dataCache';
-import { StatCard } from '@/components/ui/Card';
 
 export default function InventoryPage() {
   const [inventory, setInventory] = useState<any[]>(() => dataCache.get('/inventory') || []);
@@ -118,48 +117,13 @@ export default function InventoryPage() {
     });
   }, [inventory, searchQuery, filterCategory]);
 
-  // Asset Metrics Calculation
-  const totalItems = inventory.length;
-  const totalValue = useMemo(() => {
-    return inventory.reduce((sum, item) => sum + ((Number(item.quantity) || 0) * (Number(item.harga) || 0)), 0);
-  }, [inventory]);
-  
-  const restockCount = useMemo(() => {
-    return inventory.filter(item => Number(item.quantity) <= 5).length;
-  }, [inventory]);
-
   return (
     <div className="w-full max-w-full">
-      <div className="page-header" style={{ marginBottom: '1.25rem' }}>
+      <div className="page-header mb-5">
         <h1 className="page-title">Manajemen Inventori</h1>
       </div>
 
-      {/* 1. RINGKASAN NILAI ASET GUDANG (STAT CARDS) */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <StatCard
-          title="Total Jenis Barang"
-          value={totalItems}
-          icon={<Boxes size={24} />}
-          color="var(--blue-600)"
-          bgColor="var(--blue-50)"
-        />
-        <StatCard
-          title="Nilai Total Aset Gudang"
-          value={`Rp ${totalValue.toLocaleString('id-ID')}`}
-          icon={<TrendingUp size={24} />}
-          color="#15803d"
-          bgColor="#dcfce7"
-        />
-        <StatCard
-          title="Perlu Restock (Stok ≤ 5)"
-          value={restockCount}
-          icon={<AlertTriangle size={24} />}
-          color="#c2410c"
-          bgColor="#ffedd5"
-        />
-      </div>
-
-      <div className="grid grid-cols-1 xl:grid-cols-[290px_1fr] gap-6 items-start">
+      <div className="grid grid-cols-1 xl:grid-cols-[300px_1fr] gap-6 items-start">
         {/* FORM TAMBAH BARANG */}
         <div className="card p-5">
           <h3 className="text-base font-bold text-blue-900 mb-4 flex items-center gap-2">
@@ -250,26 +214,26 @@ export default function InventoryPage() {
           </form>
         </div>
 
-        {/* DAFTAR INVENTORI & FILTER */}
+        {/* DAFTAR INVENTORI & FILTER (YANG DILINGKARI KUNING - DIRAPIHKAN) */}
         <div className="card p-5 min-w-0">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100">
             <h3 className="text-base font-bold text-blue-900 m-0">Daftar Inventori Gudang</h3>
 
-            {/* PENCARIAN & FILTER KATEGORI */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <div className="relative min-w-[160px] flex-1 sm:flex-none">
+            {/* PENCARIAN & FILTER KATEGORI YANG RAPI & SEJAJAR */}
+            <div className="flex items-center gap-2.5 flex-nowrap">
+              <div className="relative w-48 sm:w-56">
                 <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Cari barang..."
-                  className="form-input pl-8 h-8 text-xs w-full"
+                  className="form-input pl-8 h-8.5 text-xs w-full"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
 
               <select
-                className="form-input h-8 text-xs w-auto px-2"
+                className="form-input h-8.5 text-xs w-36 px-2.5 shrink-0"
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
               >
