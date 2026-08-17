@@ -167,7 +167,6 @@ export default function RepairManagementPage() {
                   <textarea
                     className="form-input"
                     rows={2}
-                    placeholder="Tambahkan catatan..."
                     value={state.catatan}
                     onChange={(e) => setEditState({ ...editState, [ins.id]: { ...state, catatan: e.target.value } })}
                   />

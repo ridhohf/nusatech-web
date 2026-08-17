@@ -123,7 +123,7 @@ export default function InventoryPage() {
         <h1 className="page-title">Manajemen Inventori</h1>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[300px_1fr] gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6 items-start">
         {/* FORM TAMBAH BARANG */}
         <div className="card p-5">
           <h3 className="text-base font-bold text-blue-900 mb-4 flex items-center gap-2">
@@ -137,7 +137,6 @@ export default function InventoryPage() {
                 type="text" 
                 className="form-input text-xs" 
                 required 
-                placeholder="Contoh: MAT-001"
                 value={formData.kodeBarang} 
                 onChange={e => setFormData({...formData, kodeBarang: e.target.value})} 
               />
@@ -164,7 +163,6 @@ export default function InventoryPage() {
                 type="text" 
                 className="form-input text-xs" 
                 required 
-                placeholder="Contoh: Mechanical Seal 2 Inch"
                 value={formData.specBarang} 
                 onChange={e => setFormData({...formData, specBarang: e.target.value})} 
               />
@@ -189,7 +187,6 @@ export default function InventoryPage() {
                   type="text" 
                   className="form-input text-xs" 
                   required 
-                  placeholder="Pcs/Set"
                   value={formData.unitOfIssue} 
                   onChange={e => setFormData({...formData, unitOfIssue: e.target.value})} 
                 />
@@ -202,7 +199,6 @@ export default function InventoryPage() {
                 type="number" 
                 min="0" 
                 className="form-input text-xs" 
-                placeholder="0"
                 value={formData.harga} 
                 onChange={e => setFormData({...formData, harga: e.target.value === '' ? '' : parseInt(e.target.value)})} 
               />
@@ -214,26 +210,27 @@ export default function InventoryPage() {
           </form>
         </div>
 
-        {/* DAFTAR INVENTORI & FILTER (YANG DILINGKARI KUNING - DIRAPIHKAN) */}
+        {/* DAFTAR INVENTORI & FILTER */}
         <div className="card p-5 min-w-0">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100">
             <h3 className="text-base font-bold text-blue-900 m-0">Daftar Inventori Gudang</h3>
 
-            {/* PENCARIAN & FILTER KATEGORI YANG RAPI & SEJAJAR */}
-            <div className="flex items-center gap-2.5 flex-nowrap">
-              <div className="relative w-48 sm:w-56">
-                <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            {/* PENCARIAN & FILTER KATEGORI */}
+            <div className="flex items-center gap-2">
+              <div className="relative w-44 sm:w-52">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 <input
                   type="text"
-                  placeholder="Cari barang..."
-                  className="form-input pl-8 h-8.5 text-xs w-full"
+                  className="form-input text-xs w-full"
+                  style={{ height: '38px', paddingLeft: '2rem', paddingRight: '0.75rem' }}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
 
               <select
-                className="form-input h-8.5 text-xs w-36 px-2.5 shrink-0"
+                className="form-input text-xs shrink-0"
+                style={{ height: '38px', width: '130px', paddingLeft: '0.625rem', paddingRight: '0.625rem' }}
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
               >

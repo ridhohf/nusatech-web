@@ -74,16 +74,16 @@ export default function UsersPage() {
           </h3>
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="form-label">Nama Lengkap / Perusahaan</label>
-              <input type="text" className="form-input" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Budi Santoso" />
+              <label className="form-label">Nama Lengkap</label>
+              <input type="text" className="form-input" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
             </div>
             <div className="form-group">
               <label className="form-label">Email</label>
-              <input type="email" className="form-input" required value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="budi@email.com" />
+              <input type="email" className="form-input" required value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
             </div>
             <div className="form-group">
               <label className="form-label">Password</label>
-              <input type="password" className="form-input" required value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} placeholder="••••••••" />
+              <input type="password" className="form-input" required value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
             </div>
             <div className="form-group">
               <label className="form-label">Peran (Role)</label>
