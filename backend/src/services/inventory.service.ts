@@ -36,6 +36,7 @@ export const inventoryService = {
   },
 
   async delete(id: string) {
+    await prisma.inspectionItem.deleteMany({ where: { inventoryId: id } });
     return prisma.inventory.delete({ where: { id } });
   },
 };

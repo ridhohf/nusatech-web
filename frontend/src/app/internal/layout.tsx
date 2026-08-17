@@ -43,8 +43,8 @@ export default function InternalLayout({ children }: { children: React.ReactNode
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans">
       {/* Sidebar */}
-      <aside className="w-72 bg-white border-r border-slate-200/80 flex flex-col sticky top-0 h-screen shadow-2xs z-20">
-        <div className="p-6 flex items-center gap-3 font-extrabold text-blue-900 border-b border-slate-200/80 text-xl tracking-tight">
+      <aside className="w-64 shrink-0 bg-white border-r border-slate-200/80 flex flex-col sticky top-0 h-screen shadow-2xs z-20">
+        <div className="p-5 flex items-center gap-3 font-extrabold text-blue-900 border-b border-slate-200/80 text-xl tracking-tight">
           <span>Nusatech</span>
         </div>
 
@@ -94,7 +94,7 @@ export default function InternalLayout({ children }: { children: React.ReactNode
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-8 md:p-10 overflow-y-auto bg-gradient-to-br from-slate-50 via-slate-50 to-blue-50/40">
+      <main className="flex-1 min-w-0 p-6 lg:p-8 overflow-y-auto overflow-x-hidden bg-gradient-to-br from-slate-50 via-slate-50 to-blue-50/40">
         {children}
       </main>
     </div>

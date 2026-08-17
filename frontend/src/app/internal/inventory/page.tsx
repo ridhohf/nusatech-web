@@ -92,14 +92,15 @@ export default function InventoryPage() {
   const handleDelete = async (id: string, kode: string) => {
     if (!confirm(`Apakah Anda yakin ingin menghapus barang [${kode}] dari inventori?`)) return;
     try {
+      await apiClient.delete(`/inventory/${id}`);
+      
       const updated = inventory.filter(item => item.id !== id);
       setInventory(updated);
       dataCache.set('/inventory', updated);
-
-      await apiClient.delete(`/inventory/${id}`);
       dataCache.invalidate('/inventory');
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error('Delete error:', err);
+      alert(err.response?.data?.message || 'Gagal menghapus barang dari database');
       fetchInventory();
     }
   };
@@ -128,58 +129,60 @@ export default function InventoryPage() {
   }, [inventory]);
 
   return (
-    <div>
-      <div className="page-header" style={{ marginBottom: '1.5rem' }}>
+    <div className="w-full max-w-full">
+      <div className="page-header" style={{ marginBottom: '1.25rem' }}>
         <h1 className="page-title">Manajemen Inventori</h1>
       </div>
 
       {/* 1. RINGKASAN NILAI ASET GUDANG (STAT CARDS) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem', marginBottom: '1.75rem' }}>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <StatCard
           title="Total Jenis Barang"
           value={totalItems}
-          icon={<Boxes size={26} />}
+          icon={<Boxes size={24} />}
           color="var(--blue-600)"
           bgColor="var(--blue-50)"
         />
         <StatCard
           title="Nilai Total Aset Gudang"
           value={`Rp ${totalValue.toLocaleString('id-ID')}`}
-          icon={<TrendingUp size={26} />}
+          icon={<TrendingUp size={24} />}
           color="#15803d"
           bgColor="#dcfce7"
         />
         <StatCard
           title="Perlu Restock (Stok ≤ 5)"
           value={restockCount}
-          icon={<AlertTriangle size={26} />}
+          icon={<AlertTriangle size={24} />}
           color="#c2410c"
           bgColor="#ffedd5"
         />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: '1.75rem', alignItems: 'start' }}>
+      <div className="grid grid-cols-1 xl:grid-cols-[290px_1fr] gap-6 items-start">
         {/* FORM TAMBAH BARANG */}
-        <div className="card" style={{ padding: '1.5rem' }}>
-          <h3 style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--blue-900)', fontSize: '1.1rem', whiteSpace: 'nowrap' }}>
-            <Package size={20} color="var(--blue-600)" /> Tambah Barang Baru
+        <div className="card p-5">
+          <h3 className="text-base font-bold text-blue-900 mb-4 flex items-center gap-2">
+            <Package size={18} className="text-blue-600 shrink-0" />
+            <span>Tambah Barang Baru</span>
           </h3>
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label className="form-label">Kode Barang *</label>
+          <form onSubmit={handleSubmit} className="space-y-3.5">
+            <div className="form-group mb-0">
+              <label className="form-label text-xs">Kode Barang *</label>
               <input 
                 type="text" 
-                className="form-input" 
+                className="form-input text-xs" 
                 required 
+                placeholder="Contoh: MAT-001"
                 value={formData.kodeBarang} 
                 onChange={e => setFormData({...formData, kodeBarang: e.target.value})} 
               />
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Jenis Barang *</label>
+            <div className="form-group mb-0">
+              <label className="form-label text-xs">Jenis Barang *</label>
               <select 
-                className="form-input" 
+                className="form-input text-xs" 
                 value={formData.jenisBarang} 
                 onChange={e => setFormData({...formData, jenisBarang: e.target.value})} 
                 required
@@ -191,80 +194,82 @@ export default function InventoryPage() {
               </select>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Spesifikasi *</label>
+            <div className="form-group mb-0">
+              <label className="form-label text-xs">Spesifikasi *</label>
               <input 
                 type="text" 
-                className="form-input" 
+                className="form-input text-xs" 
                 required 
+                placeholder="Contoh: Mechanical Seal 2 Inch"
                 value={formData.specBarang} 
                 onChange={e => setFormData({...formData, specBarang: e.target.value})} 
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-              <div className="form-group">
-                <label className="form-label">Kuantitas *</label>
+            <div className="grid grid-cols-2 gap-2.5">
+              <div className="form-group mb-0">
+                <label className="form-label text-xs">Kuantitas *</label>
                 <input 
                   type="number" 
                   min="0" 
-                  className="form-input" 
+                  className="form-input text-xs" 
                   required 
                   value={formData.quantity} 
                   onChange={e => setFormData({...formData, quantity: e.target.value === '' ? '' : parseInt(e.target.value)})} 
                 />
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Satuan *</label>
+              <div className="form-group mb-0">
+                <label className="form-label text-xs">Satuan *</label>
                 <input 
                   type="text" 
-                  className="form-input" 
+                  className="form-input text-xs" 
                   required 
+                  placeholder="Pcs/Set"
                   value={formData.unitOfIssue} 
                   onChange={e => setFormData({...formData, unitOfIssue: e.target.value})} 
                 />
               </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Harga Satuan (Rp)</label>
+            <div className="form-group mb-0">
+              <label className="form-label text-xs">Harga Satuan (Rp)</label>
               <input 
                 type="number" 
                 min="0" 
-                className="form-input" 
+                className="form-input text-xs" 
+                placeholder="0"
                 value={formData.harga} 
                 onChange={e => setFormData({...formData, harga: e.target.value === '' ? '' : parseInt(e.target.value)})} 
               />
             </div>
 
-            <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '0.5rem' }} disabled={loading}>
+            <button type="submit" className="btn btn-primary w-full text-xs font-bold py-2.5 mt-2 shadow-xs" disabled={loading}>
               {loading ? 'Menyimpan...' : 'Tambah ke Inventori'}
             </button>
           </form>
         </div>
 
         {/* DAFTAR INVENTORI & FILTER */}
-        <div className="card" style={{ padding: '1.5rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
-            <h3 style={{ margin: 0, color: 'var(--blue-900)', fontSize: '1.1rem' }}>Daftar Inventori Gudang</h3>
+        <div className="card p-5 min-w-0">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+            <h3 className="text-base font-bold text-blue-900 m-0">Daftar Inventori Gudang</h3>
 
             {/* PENCARIAN & FILTER KATEGORI */}
-            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-              <div style={{ position: 'relative', minWidth: '180px' }}>
-                <Search size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="relative min-w-[160px] flex-1 sm:flex-none">
+                <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  className="form-input"
-                  style={{ paddingLeft: '2.25rem', height: '38px', fontSize: '0.85rem' }}
+                  placeholder="Cari barang..."
+                  className="form-input pl-8 h-8 text-xs w-full"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
 
               <select
-                className="form-input"
-                style={{ width: 'auto', height: '38px', fontSize: '0.85rem' }}
+                className="form-input h-8 text-xs w-auto px-2"
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
               >
@@ -278,18 +283,18 @@ export default function InventoryPage() {
           </div>
 
           {/* TABEL INVENTORI LENGKAP & HARGA */}
-          <div className="table-container">
-            <table className="data-table" style={{ width: '100%', tableLayout: 'auto' }}>
+          <div className="table-container overflow-x-auto rounded-xl border border-slate-200/80">
+            <table className="data-table w-full text-xs">
               <thead>
                 <tr>
-                  <th style={{ whiteSpace: 'nowrap' }}>KODE</th>
-                  <th style={{ whiteSpace: 'nowrap' }}>JENIS</th>
-                  <th style={{ whiteSpace: 'nowrap' }}>SPESIFIKASI</th>
-                  <th style={{ whiteSpace: 'nowrap' }}>STOK</th>
-                  <th style={{ whiteSpace: 'nowrap' }}>HARGA SATUAN</th>
-                  <th style={{ whiteSpace: 'nowrap' }}>TOTAL NILAI</th>
-                  <th style={{ whiteSpace: 'nowrap' }}>STATUS</th>
-                  <th style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>AKSI CEPAT</th>
+                  <th className="whitespace-nowrap py-2.5 px-3">KODE</th>
+                  <th className="whitespace-nowrap py-2.5 px-3">JENIS</th>
+                  <th className="whitespace-nowrap py-2.5 px-3">SPESIFIKASI</th>
+                  <th className="whitespace-nowrap py-2.5 px-3">STOK</th>
+                  <th className="whitespace-nowrap py-2.5 px-3">HARGA SATUAN</th>
+                  <th className="whitespace-nowrap py-2.5 px-3">TOTAL NILAI</th>
+                  <th className="whitespace-nowrap py-2.5 px-3">STATUS</th>
+                  <th className="whitespace-nowrap py-2.5 px-3 text-center">AKSI</th>
                 </tr>
               </thead>
               <tbody>
@@ -299,86 +304,57 @@ export default function InventoryPage() {
                   const total = qty * harga;
 
                   return (
-                    <tr key={item.id}>
-                      <td style={{ fontWeight: 700, fontFamily: 'monospace', color: 'var(--blue-900)', whiteSpace: 'nowrap' }}>
+                    <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="font-bold font-mono text-blue-900 whitespace-nowrap py-2.5 px-3">
                         {item.kodeBarang}
                       </td>
-                      <td style={{ whiteSpace: 'nowrap' }}>
-                        <span className="badge badge-blue">{item.jenisBarang}</span>
+                      <td className="whitespace-nowrap py-2.5 px-3">
+                        <span className="badge badge-blue text-[11px] font-semibold">{item.jenisBarang}</span>
                       </td>
-                      <td style={{ fontWeight: 500 }}>{item.specBarang}</td>
-                      <td style={{ whiteSpace: 'nowrap' }}>
-                        <span style={{ fontWeight: 800, color: qty <= 5 ? '#c2410c' : '#0f172a' }}>
+                      <td className="font-medium text-slate-800 py-2.5 px-3">{item.specBarang}</td>
+                      <td className="whitespace-nowrap py-2.5 px-3">
+                        <span className={`font-extrabold ${qty <= 5 ? 'text-amber-600' : 'text-slate-900'}`}>
                           {qty} {item.unitOfIssue}
                         </span>
                       </td>
-                      <td style={{ whiteSpace: 'nowrap' }}>Rp {harga.toLocaleString('id-ID')}</td>
-                      <td style={{ fontWeight: 600, color: '#15803d', whiteSpace: 'nowrap' }}>Rp {total.toLocaleString('id-ID')}</td>
-                      <td style={{ whiteSpace: 'nowrap' }}>
+                      <td className="whitespace-nowrap py-2.5 px-3 text-slate-600">Rp {harga.toLocaleString('id-ID')}</td>
+                      <td className="whitespace-nowrap py-2.5 px-3 font-semibold text-emerald-700">Rp {total.toLocaleString('id-ID')}</td>
+                      <td className="whitespace-nowrap py-2.5 px-3">
                         {qty > 5 ? (
-                          <span className="badge badge-green">AMAN</span>
+                          <span className="badge badge-green text-[10px] font-bold">AMAN</span>
                         ) : (
-                          <span className="badge badge-orange">RESTOCK</span>
+                          <span className="badge badge-orange text-[10px] font-bold">RESTOCK</span>
                         )}
                       </td>
 
-                      {/* AKSI CEPAT (RESTOCK & HAPUS) */}
-                      <td style={{ whiteSpace: 'nowrap' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                      {/* AKSI CEPAT (RESTOCK & HAPUS) - RAPI & SEJAJAR */}
+                      <td className="whitespace-nowrap py-2.5 px-3">
+                        <div className="flex items-center justify-center gap-1.5">
                           <button
                             type="button"
                             onClick={() => handleUpdateStock(item.id, 5)}
-                            title="Tambah Stok +5"
-                            style={{
-                              padding: '0.25rem 0.5rem',
-                              fontSize: '0.75rem',
-                              fontWeight: 700,
-                              backgroundColor: '#dcfce7',
-                              color: '#15803d',
-                              border: '1px solid #86efac',
-                              borderRadius: '0.35rem',
-                              cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '0.2rem',
-                              whiteSpace: 'nowrap',
-                            }}
+                            title="Tambah 5 unit"
+                            className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-lg transition-colors cursor-pointer shadow-2xs"
                           >
-                            <Plus size={12} /> Restock +5
+                            <Plus size={11} className="stroke-[2.5]" />
+                            <span>5</span>
                           </button>
 
                           <button
                             type="button"
                             onClick={() => handleUpdateStock(item.id, -1)}
                             disabled={qty <= 0}
-                            title="Kurangi Stok -1"
-                            style={{
-                              padding: '0.25rem 0.4rem',
-                              fontSize: '0.75rem',
-                              backgroundColor: '#f1f5f9',
-                              color: '#475569',
-                              border: '1px solid #cbd5e1',
-                              borderRadius: '0.35rem',
-                              cursor: qty <= 0 ? 'not-allowed' : 'pointer',
-                              opacity: qty <= 0 ? 0.5 : 1,
-                            }}
+                            title="Kurangi 1 unit"
+                            className="inline-flex items-center justify-center w-6 h-6 text-[11px] font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed border border-slate-300 rounded-lg transition-colors cursor-pointer shadow-2xs"
                           >
-                            <Minus size={12} />
+                            <Minus size={11} className="stroke-[2.5]" />
                           </button>
 
                           <button
                             type="button"
                             onClick={() => handleDelete(item.id, item.kodeBarang)}
-                            title="Hapus Barang"
-                            style={{
-                              padding: '0.25rem 0.4rem',
-                              fontSize: '0.75rem',
-                              backgroundColor: '#fef2f2',
-                              color: '#b91c1c',
-                              border: '1px solid #fecaca',
-                              borderRadius: '0.35rem',
-                              cursor: 'pointer',
-                            }}
+                            title="Hapus barang"
+                            className="inline-flex items-center justify-center w-6 h-6 text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition-colors cursor-pointer shadow-2xs"
                           >
                             <Trash2 size={12} />
                           </button>
@@ -390,7 +366,7 @@ export default function InventoryPage() {
 
                 {filteredInventory.length === 0 && (
                   <tr>
-                    <td colSpan={8} style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-secondary)' }}>
+                    <td colSpan={8} className="text-center py-8 text-slate-400 text-xs">
                       {fetching ? 'Memuat data inventori...' : 'Tidak ada data barang yang sesuai.'}
                     </td>
                   </tr>
