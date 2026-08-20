@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import apiClient from '@/api/client';
-import { Download } from 'lucide-react';
+import { Download, Trash2, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge, StatusBadge } from '@/components/ui/Badge';
 import { dataCache } from '@/utils/dataCache';
+import SCurveModal from '@/components/SCurveModal';
 
 const STATUS_OPTIONS = ['PENDING', 'INSPEKSI', 'WAITING_MATERIAL', 'EKSEKUSI', 'QC', 'FINISH'];
 const STATUS_LABELS: Record<string, string> = {
@@ -20,6 +21,7 @@ const STATUS_LABELS: Record<string, string> = {
 export default function RepairManagementPage() {
   const [inspections, setInspections] = useState<any[]>(() => dataCache.get('/inspections') || []);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [selectedInspectionForSCurve, setSelectedInspectionForSCurve] = useState<any | null>(null);
   
   // Local state for edits
   const [editState, setEditState] = useState<Record<string, { status: string; file: File | null; catatan: string }>>({});
@@ -104,6 +106,22 @@ export default function RepairManagementPage() {
     }
   };
 
+  const handleDeleteProject = async (id: string, code: string) => {
+    if (!confirm(`Apakah Anda yakin ingin menghapus proyek pekerjaan [${code}]?`)) return;
+    try {
+      await apiClient.delete(`/inspections/${id}`);
+      const updated = inspections.filter(ins => ins.id !== id);
+      setInspections(updated);
+      dataCache.set('/inspections', updated);
+      dataCache.invalidate('/inspections');
+      alert('Proyek berhasil dihapus');
+    } catch (err: any) {
+      console.error('Delete inspection error:', err);
+      alert(err.response?.data?.message || 'Gagal menghapus proyek');
+      fetchData();
+    }
+  };
+
   return (
     <div>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -120,25 +138,61 @@ export default function RepairManagementPage() {
           const state = editState[ins.id] || { status: ins.status, file: null, catatan: '' };
           const needsPhoto = state.status === 'QC' || state.status === 'FINISH';
           const isChanged = state.status !== ins.status || state.catatan !== (ins.catatan || '') || state.file !== null;
+          const currentProjectCode = ins.projectCode || `${ins.company?.code || '6501'}-${ins.scopeCode || '10'}${ins.equipmentCode || '10'}`;
 
           return (
             <div key={ins.id} className="card" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '2rem' }}>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                  {ins.company ? (
-                    <span style={{ backgroundColor: 'var(--blue-100)', color: 'var(--blue-800)', padding: '0.2rem 0.5rem', borderRadius: '0.35rem', fontSize: '0.8rem', fontWeight: 700 }}>
-                      [{ins.company.code}] {ins.company.name}
-                    </span>
-                  ) : (
-                    <span style={{ fontWeight: 800, fontFamily: 'monospace', backgroundColor: 'var(--blue-100)', color: 'var(--blue-900)', padding: '0.2rem 0.5rem', borderRadius: '0.35rem', fontSize: '0.85rem' }}>
-                      {ins.projectCode || `${ins.company?.code || '6501'}-${ins.scopeCode || '10'}${ins.equipmentCode || '10'}`}
-                    </span>
-                  )}
-                  <StatusBadge status={ins.status} />
-                  <Badge variant="blue">{ins.kategoriPerbaikan}</Badge>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                    {ins.company ? (
+                      <span style={{ backgroundColor: 'var(--blue-100)', color: 'var(--blue-800)', padding: '0.2rem 0.5rem', borderRadius: '0.35rem', fontSize: '0.8rem', fontWeight: 700 }}>
+                        [{ins.company.code}] {ins.company.name}
+                      </span>
+                    ) : (
+                      <span style={{ fontWeight: 800, fontFamily: 'monospace', backgroundColor: 'var(--blue-100)', color: 'var(--blue-900)', padding: '0.2rem 0.5rem', borderRadius: '0.35rem', fontSize: '0.85rem' }}>
+                        {currentProjectCode}
+                      </span>
+                    )}
+                    <StatusBadge status={ins.status} />
+                    <Badge variant="blue">{ins.kategoriPerbaikan}</Badge>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteProject(ins.id, currentProjectCode)}
+                    title="Hapus Proyek"
+                    style={{
+                      padding: '0.35rem 0.5rem',
+                      backgroundColor: '#fef2f2',
+                      color: '#b91c1c',
+                      border: '1px solid #fecaca',
+                      borderRadius: '0.4rem',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.25rem',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                    }}
+                  >
+                    <Trash2 size={13} /> Hapus
+                  </button>
                 </div>
-                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
                   PIC: <strong>{ins.pic?.name}</strong> · Material: <strong>{ins.items?.length || 0} item</strong> · {new Date(ins.createdAt).toLocaleDateString('id-ID')}
+                </div>
+
+                {/* TOMBOL MONITORING KURVA-S & WBS */}
+                <div style={{ marginBottom: '1rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedInspectionForSCurve(ins)}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-3 py-1.5 rounded-lg transition-colors cursor-pointer shadow-2xs"
+                  >
+                    <TrendingUp size={14} className="stroke-[2.5]" />
+                    <span>Tracking Progres & Kurva-S</span>
+                  </button>
                 </div>
                 
                 {ins.fotoBukti && (
@@ -201,6 +255,13 @@ export default function RepairManagementPage() {
           </div>
         )}
       </div>
+
+      {/* S-CURVE MODAL */}
+      <SCurveModal
+        inspection={selectedInspectionForSCurve}
+        isOpen={!!selectedInspectionForSCurve}
+        onClose={() => setSelectedInspectionForSCurve(null)}
+      />
     </div>
   );
 }

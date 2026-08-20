@@ -76,7 +76,10 @@ model Inspection {
   status           StatusPerbaikan @default(PENDING)
   catatan          String?
   fotoBukti        String?
+  durationDays     Int      @default(7)
+  totalPrice       Float    @default(0)
   items            InspectionItem[]
+  milestones       ProjectMilestone[]
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }
@@ -100,12 +103,38 @@ model InspectionItem {
   id           String     @id @default(uuid())
   inspectionId String
   inventoryId  String
-  inspection   Inspection @relation(fields: [inspectionId], references: [id])
+  inspection   Inspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
   inventory    Inventory  @relation(fields: [inventoryId], references: [id])
   quantityUsed Int        @default(1)
   statusMaterial StatusMaterial @default(PENDING)
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
+}
+
+model ProjectMilestone {
+  id           String          @id @default(uuid())
+  inspectionId String
+  inspection   Inspection      @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  taskName     String
+  qty          Float           @default(1)
+  uom          String          @default("SET")
+  unitPrice    Float           @default(0)
+  totalPrice   Float           @default(0)
+  weight       Float           @default(0)
+  progress     Float           @default(0)
+  planWeek     Int             @default(1)
+  order        Int             @default(1)
+  dailyPlanning Json?
+  dailyActual   Json?
+  status       MilestoneStatus @default(PENDING)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+enum MilestoneStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
 }
 
 enum StatusMaterial {

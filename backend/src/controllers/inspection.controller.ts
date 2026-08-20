@@ -66,3 +66,11 @@ export const updateMaterialStatus = async (req: Request, res: Response, next: Ne
     res.json(formatSuccess(data, 'Status material diperbarui'));
   } catch (error) { next(error); }
 };
+
+export const deleteInspection = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const id = req.params.id as string;
+    await inspectionService.delete(id);
+    res.json(formatSuccess(null, 'Proyek inspeksi berhasil dihapus'));
+  } catch (error) { next(error); }
+};

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import apiClient from '@/api/client';
-import { ClipboardCheck, Plus, Building2, X, CheckCircle } from 'lucide-react';
+import { ClipboardCheck, Plus, Building2, X, CheckCircle, Trash2 } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { dataCache } from '@/utils/dataCache';
 
@@ -124,6 +124,21 @@ export default function IncomingPage() {
       alert(err.response?.data?.message || 'Gagal menyimpan registrasi pekerjaan');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteProject = async (id: string, code: string) => {
+    if (!confirm(`Apakah Anda yakin ingin menghapus proyek [${code}]?`)) return;
+    try {
+      await apiClient.delete(`/inspections/${id}`);
+      const updated = inspections.filter(ins => ins.id !== id);
+      setInspections(updated);
+      dataCache.set('/inspections', updated);
+      dataCache.invalidate('/inspections');
+    } catch (err: any) {
+      console.error('Delete inspection error:', err);
+      alert(err.response?.data?.message || 'Gagal menghapus proyek');
+      fetchData();
     }
   };
 
@@ -327,12 +342,14 @@ export default function IncomingPage() {
                   <th>Scope & Peralatan</th>
                   <th>Status</th>
                   <th>Tanggal</th>
+                  <th style={{ textAlign: 'center' }}>Aksi</th>
                 </tr>
               </thead>
               <tbody>
                 {inspections.map((ins: any) => {
                   const scopeName = SCOPE_OPTIONS.find(s => s.code === ins.scopeCode)?.name || 'Perbaikan';
                   const equipName = EQUIPMENT_OPTIONS.find(eq => eq.code === ins.equipmentCode)?.name || 'Unit';
+                  const currentProjectCode = ins.projectCode || `${ins.company?.code || '6501'}-${ins.scopeCode || '10'}${ins.equipmentCode || '10'}`;
 
                   return (
                     <tr key={ins.id}>
@@ -347,7 +364,7 @@ export default function IncomingPage() {
                           fontWeight: 800,
                           letterSpacing: '0.02em',
                         }}>
-                          {ins.projectCode || `${ins.company?.code || '6501'}-${ins.scopeCode || '10'}${ins.equipmentCode || '10'}`}
+                          {currentProjectCode}
                         </span>
                       </td>
                       <td>
@@ -361,11 +378,32 @@ export default function IncomingPage() {
                       </td>
                       <td><span className="badge badge-orange">{ins.status}</span></td>
                       <td style={{ fontSize: '0.85rem' }}>{new Date(ins.createdAt).toLocaleDateString('id-ID')}</td>
+                      <td style={{ textAlign: 'center' }}>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteProject(ins.id, currentProjectCode)}
+                          title="Hapus Proyek"
+                          style={{
+                            padding: '0.35rem 0.5rem',
+                            backgroundColor: '#fef2f2',
+                            color: '#b91c1c',
+                            border: '1px solid #fecaca',
+                            borderRadius: '0.4rem',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </td>
                     </tr>
                   );
                 })}
                 {inspections.length === 0 && (
-                  <tr><td colSpan={5} style={{ textAlign: 'center', padding: '2rem' }}>Belum ada data registrasi</td></tr>
+                  <tr><td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>Belum ada data registrasi</td></tr>
                 )}
               </tbody>
             </table>

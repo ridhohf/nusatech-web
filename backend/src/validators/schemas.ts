@@ -29,8 +29,11 @@ export const inventorySchema = z.object({
 
 export const inspectionSchema = z.object({
   picId: z.string().uuid('PIC ID tidak valid'),
-  kategoriPerbaikan: z.enum(['GANTI', 'FABRIKASI', 'REPAIR']),
-  catatan: z.string().optional(),
+  companyId: z.string().uuid('Company ID tidak valid').optional().nullable(),
+  scopeCode: z.string().optional().nullable(),
+  equipmentCode: z.string().optional().nullable(),
+  kategoriPerbaikan: z.enum(['GANTI', 'FABRIKASI', 'REPAIR']).optional(),
+  catatan: z.string().optional().nullable(),
   items: z.array(z.object({
     inventoryId: z.string().uuid(),
     quantityUsed: z.number().int().min(1),

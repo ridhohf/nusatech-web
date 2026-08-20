@@ -277,3 +277,14 @@ body {
   50% { opacity: 1; transform: scaleX(0.8); transform-origin: left; }
   100% { opacity: 0.4; transform: scaleX(1); transform-origin: left; }
 }
+
+/* Hilangkan spinner panah atas-bawah pada input type number */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}

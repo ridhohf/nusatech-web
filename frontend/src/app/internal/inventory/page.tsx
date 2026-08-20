@@ -216,21 +216,26 @@ export default function InventoryPage() {
             <h3 className="text-base font-bold text-blue-900 m-0">Daftar Inventori Gudang</h3>
 
             {/* PENCARIAN & FILTER KATEGORI */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <div className="relative w-44 sm:w-52">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 <input
                   type="text"
-                  className="form-input text-xs w-full"
-                  style={{ height: '38px', paddingLeft: '2rem', paddingRight: '0.75rem' }}
+                  className="w-full bg-white text-slate-900 border border-slate-300 rounded-lg text-xs outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all"
+                  style={{ height: '36px', padding: '0 0.75rem 0 2.1rem' }}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
 
               <select
-                className="form-input text-xs shrink-0"
-                style={{ height: '38px', width: '130px', paddingLeft: '0.625rem', paddingRight: '0.625rem' }}
+                className="bg-white text-slate-800 font-medium border border-slate-300 rounded-lg text-xs outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all shrink-0 cursor-pointer"
+                style={{
+                  height: '36px',
+                  width: '135px',
+                  padding: '0 0.75rem',
+                  lineHeight: '36px',
+                }}
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
               >

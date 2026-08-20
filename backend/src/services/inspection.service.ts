@@ -103,4 +103,11 @@ export const inspectionService = {
       data: { statusMaterial: statusMaterial as any },
     });
   },
+
+  async delete(id: string) {
+    return prisma.$transaction(async (tx) => {
+      await tx.inspectionItem.deleteMany({ where: { inspectionId: id } });
+      return tx.inspection.delete({ where: { id } });
+    });
+  },
 };

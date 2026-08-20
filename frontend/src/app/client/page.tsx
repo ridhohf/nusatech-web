@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import apiClient from '@/api/client';
 import { useAuthStore } from '@/store/useAuthStore';
 import { dataCache } from '@/utils/dataCache';
+import { TrendingUp } from 'lucide-react';
+import SCurveModal from '@/components/SCurveModal';
 
 const STATUS_STEPS = ['PENDING', 'INSPEKSI', 'WAITING_MATERIAL', 'EKSEKUSI', 'QC', 'FINISH'];
 
@@ -48,6 +50,7 @@ const StatusStepper = ({ currentStatus }: { currentStatus: string }) => {
 
 export default function ClientPage() {
   const [inspections, setInspections] = useState<any[]>(() => dataCache.get('/client-inspections') || []);
+  const [selectedInspectionForSCurve, setSelectedInspectionForSCurve] = useState<any | null>(null);
   const { user } = useAuthStore();
 
   useEffect(() => {
@@ -110,7 +113,15 @@ export default function ClientPage() {
                     </div>
                   )}
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedInspectionForSCurve(ins)}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <TrendingUp size={13} className="stroke-[2.5]" />
+                    <span>Lihat Kurva-S Progres</span>
+                  </button>
                   <span className="badge badge-blue">{ins.kategoriPerbaikan}</span>
                   <span className={`badge ${ins.status === 'FINISH' ? 'badge-green' : ins.status === 'WAITING MATERIAL' ? 'badge-orange' : 'badge-blue'}`}>
                     {ins.status}
@@ -153,6 +164,14 @@ export default function ClientPage() {
           ))
         )}
       </div>
+
+      {/* S-CURVE MODAL READ-ONLY FOR CLIENT */}
+      <SCurveModal
+        inspection={selectedInspectionForSCurve}
+        isOpen={!!selectedInspectionForSCurve}
+        onClose={() => setSelectedInspectionForSCurve(null)}
+        isReadOnly={true}
+      />
     </div>
   );
 }
