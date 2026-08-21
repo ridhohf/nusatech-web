@@ -4,7 +4,7 @@ export const errorHandler = (err: any, _req: Request, res: Response, _next: Next
   console.error(`[ERROR] ${err.message}`, err.stack);
 
   const statusCode = err.statusCode || 500;
-  const message = statusCode === 500 ? 'Internal Server Error' : err.message;
+  const message = err.message || 'Terjadi kesalahan pada server';
 
   res.status(statusCode).json({
     success: false,
