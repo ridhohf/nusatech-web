@@ -15,15 +15,28 @@ export const companyService = {
     npwp?: string;
     regionCode?: string;
   }) {
-    // Detect region automatically if address contains sumbar/padang or regionCode === '51'
-    let region = '65'; // Default Riau 65
+    // 1. Tentukan wilayah (Region): Manual selection atau Smart NLP Detection
+    let region = '65'; // Default: Riau 65
+
     if (data.regionCode === '51') {
-      region = '51';
-    } else if (data.address && /sumbar|padang|bukittinggi|payakumbuh|solok/i.test(data.address)) {
-      region = '51';
+      region = '51'; // Manual: Sumbar
+    } else if (data.regionCode === '65') {
+      region = '65'; // Manual: Riau
+    } else {
+      // Smart Auto-Detection dari kata kunci Alamat & Nama Perusahaan
+      const fullText = `${data.name || ''} ${data.address || ''}`.toLowerCase();
+      
+      const sumbarRegex = /sumbar|sumatera barat|padang|bukittinggi|payakumbuh|solok|sawahlunto|pariaman|padang panjang|pasaman|agam|dharmasraya|pesisir selatan|sijunjung|tanah datar|limapuluh kota|indarung/i;
+      const riauRegex = /riau|pekanbaru|dumai|duri|siak|kampar|pelalawan|bengkalis|rohil|rokan hilir|rohul|rokan hulu|kuansing|kuantan singingi|indragiri|inhil|inhu|meranti/i;
+
+      if (sumbarRegex.test(fullText)) {
+        region = '51';
+      } else if (riauRegex.test(fullText)) {
+        region = '65';
+      }
     }
 
-    // Find companies with code starting with the specified region code
+    // 2. Cari perusahaan dengan awalan kode wilayah tersebut untuk menghitung nomor urut selanjutnya
     const regionalCompanies = await prisma.company.findMany({
       where: {
         code: {

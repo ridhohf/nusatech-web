@@ -45,15 +45,33 @@ export default function IncomingPage() {
   const [selectedItems, setSelectedItems] = useState<{inventoryId: string, quantityUsed: number}[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Modal State for Quick Add Company (Nama, Alamat, CP, No tel CP, NPWP)
+  // Modal State for Quick Add Company (Nama, Alamat, CP, No tel CP, NPWP, Region)
   const [showCompanyModal, setShowCompanyModal] = useState(false);
   const [newCompanyName, setNewCompanyName] = useState('');
   const [newCompanyAddress, setNewCompanyAddress] = useState('');
   const [newCompanyContact, setNewCompanyContact] = useState('');
   const [newCompanyPhone, setNewCompanyPhone] = useState('');
   const [newCompanyNpwp, setNewCompanyNpwp] = useState('');
+  const [newCompanyRegion, setNewCompanyRegion] = useState('AUTO');
   const [addingCompany, setAddingCompany] = useState(false);
   const [companySuccessMessage, setCompanySuccessMessage] = useState('');
+
+  const getDetectedRegionInfo = () => {
+    if (newCompanyRegion === '51') {
+      return { code: '51', name: 'Sumatera Barat (Sumbar)', isAuto: false };
+    }
+    if (newCompanyRegion === '65') {
+      return { code: '65', name: 'Riau', isAuto: false };
+    }
+    
+    // AUTO detection from address or name
+    const fullText = `${newCompanyName} ${newCompanyAddress}`.toLowerCase();
+    const sumbarRegex = /sumbar|sumatera barat|padang|bukittinggi|payakumbuh|solok|sawahlunto|pariaman|padang panjang|pasaman|agam|dharmasraya|pesisir selatan|sijunjung|tanah datar|limapuluh kota|indarung/i;
+    if (sumbarRegex.test(fullText)) {
+      return { code: '51', name: 'Sumatera Barat (Sumbar)', isAuto: true };
+    }
+    return { code: '65', name: 'Riau (Default Base)', isAuto: true };
+  };
 
   const fetchData = async () => {
     // 1. Render instantly from cache
@@ -154,6 +172,7 @@ export default function IncomingPage() {
         contact: newCompanyContact.trim() || undefined,
         phone: newCompanyPhone.trim() || undefined,
         npwp: newCompanyNpwp.trim() || undefined,
+        regionCode: newCompanyRegion !== 'AUTO' ? newCompanyRegion : undefined,
       });
 
       const createdCompany: Company = res.data;
@@ -162,7 +181,7 @@ export default function IncomingPage() {
       dataCache.set('/companies', updatedCompanies);
       setCompanyId(createdCompany.id);
 
-      setCompanySuccessMessage(`Perusahaan ${createdCompany.name} berhasil ditambahkan! ID Perusahaan: [${createdCompany.code}]`);
+      setCompanySuccessMessage(`Perusahaan ${createdCompany.name} berhasil ditambahkan! ID Perusahaan: [${createdCompany.code}] (Wilayah ${createdCompany.regionCode === '51' ? 'Sumatera Barat' : 'Riau'})`);
       setTimeout(() => {
         setCompanySuccessMessage('');
         setShowCompanyModal(false);
@@ -171,7 +190,8 @@ export default function IncomingPage() {
         setNewCompanyContact('');
         setNewCompanyPhone('');
         setNewCompanyNpwp('');
-      }, 1400);
+        setNewCompanyRegion('AUTO');
+      }, 1500);
     } catch (err: any) {
       alert(err.response?.data?.message || 'Gagal menambahkan perusahaan.');
     } finally {
@@ -473,12 +493,49 @@ export default function IncomingPage() {
                   <input
                     type="text"
                     className="form-input"
+                    placeholder="Contoh: Jl. Indarung, Padang / Jl. Riau, Pekanbaru..."
                     value={newCompanyAddress}
                     onChange={(e) => setNewCompanyAddress(e.target.value)}
                   />
                 </div>
 
-                {/* 3. CONTACT PERSON (CP) */}
+                {/* 3. WILAYAH / PROVINSI OPERASIONAL */}
+                {(() => {
+                  const detected = getDetectedRegionInfo();
+                  return (
+                    <div className="form-group" style={{ backgroundColor: '#f8fafc', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                        <label className="form-label" style={{ margin: 0, fontWeight: 700 }}>Wilayah / Provinsi *</label>
+                        <span style={{ 
+                          fontSize: '0.75rem', 
+                          fontWeight: 700,
+                          color: detected.code === '51' ? '#047857' : '#1d4ed8',
+                          backgroundColor: detected.code === '51' ? '#ecfdf5' : '#eff6ff',
+                          padding: '0.2rem 0.6rem',
+                          borderRadius: '0.375rem',
+                          border: `1px solid ${detected.code === '51' ? '#a7f3d0' : '#bfdbfe'}`
+                        }}>
+                          {detected.isAuto ? `⚡ Terdeteksi: [${detected.code}] ${detected.name}` : `🔒 Pilihan Manual: [${detected.code}] ${detected.name}`}
+                        </span>
+                      </div>
+                      <select
+                        className="form-input"
+                        value={newCompanyRegion}
+                        onChange={(e) => setNewCompanyRegion(e.target.value)}
+                        style={{ height: '36px', lineHeight: '36px', padding: '0 0.75rem', fontWeight: 600 }}
+                      >
+                        <option value="AUTO">⚡ Deteksi Otomatis (Dari Kata Kunci Alamat)</option>
+                        <option value="65">[65] Provinsi Riau (Pekanbaru, Dumai, Duri, Siak, dll.)</option>
+                        <option value="51">[51] Provinsi Sumatera Barat (Padang, Bukittinggi, Payakumbuh, dll.)</option>
+                      </select>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block', marginTop: '0.3rem' }}>
+                        * Kode Perusahaan akan diawali dengan kode wilayah (Riau: <b>65xx</b>, Sumbar: <b>51xx</b>).
+                      </span>
+                    </div>
+                  );
+                })()}
+
+                {/* 4. CONTACT PERSON (CP) */}
                 <div className="form-group">
                   <label className="form-label">Contact Person (CP)</label>
                   <input
@@ -489,7 +546,7 @@ export default function IncomingPage() {
                   />
                 </div>
 
-                {/* 4. NO TEL CP */}
+                {/* 5. NO TEL CP */}
                 <div className="form-group">
                   <label className="form-label">No. Telepon CP</label>
                   <input
@@ -500,7 +557,7 @@ export default function IncomingPage() {
                   />
                 </div>
 
-                {/* 5. NPWP */}
+                {/* 6. NPWP */}
                 <div className="form-group" style={{ marginBottom: '1.5rem' }}>
                   <label className="form-label">NPWP Perusahaan</label>
                   <input
