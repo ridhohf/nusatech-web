@@ -12,7 +12,16 @@ export const supplierService = {
 export const userService = {
   async getAll() {
     return prisma.user.findMany({
-      select: { id: true, name: true, email: true, role: true, isApproved: true, createdAt: true },
+      select: { 
+        id: true, 
+        name: true, 
+        email: true, 
+        role: true, 
+        companyId: true, 
+        company: true, 
+        isApproved: true, 
+        createdAt: true 
+      },
       orderBy: { createdAt: 'desc' },
     });
   },
@@ -20,7 +29,14 @@ export const userService = {
     return prisma.user.update({
       where: { id },
       data: { isApproved: true },
-      select: { id: true, name: true, email: true, role: true, isApproved: true },
+      select: { id: true, name: true, email: true, role: true, isApproved: true, companyId: true, company: true },
+    });
+  },
+  async updateUserCompany(id: string, companyId: string | null) {
+    return prisma.user.update({
+      where: { id },
+      data: { companyId },
+      select: { id: true, name: true, email: true, role: true, isApproved: true, companyId: true, company: true },
     });
   },
 };

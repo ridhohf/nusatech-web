@@ -26,3 +26,12 @@ export const approveUser = async (req: Request, res: Response, next: NextFunctio
     res.json(formatSuccess(user, 'Akun berhasil disetujui'));
   } catch (error) { next(error); }
 };
+
+export const updateUserCompany = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const id = req.params.id as string;
+    const { companyId } = req.body;
+    const user = await userService.updateUserCompany(id, companyId || null);
+    res.json(formatSuccess(user, 'Perusahaan klien berhasil diperbarui'));
+  } catch (error) { next(error); }
+};

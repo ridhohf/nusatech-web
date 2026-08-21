@@ -2,10 +2,24 @@ import { Request, Response, NextFunction } from 'express';
 import { inspectionService } from '../services/inspection.service';
 import { formatSuccess } from '../utils/response.util';
 import { supabase } from '../utils/supabase';
+import { AuthRequest } from '../types';
+import { prisma } from '../prisma';
 
-export const getInspections = async (_req: Request, res: Response, next: NextFunction) => {
+export const getInspections = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = await inspectionService.getAll();
+    const authReq = req as AuthRequest;
+    const user = authReq.user;
+
+    let companyId = user?.companyId;
+    if (user?.role === 'CLIENT' && !companyId && user.id) {
+      const dbUser = await prisma.user.findUnique({ where: { id: user.id }, select: { companyId: true } });
+      companyId = dbUser?.companyId;
+    }
+
+    const data = await inspectionService.getAll({ 
+      role: user?.role, 
+      companyId 
+    });
     res.json(formatSuccess(data));
   } catch (error) { next(error); }
 };

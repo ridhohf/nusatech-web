@@ -1,10 +1,32 @@
 import { Request, Response, NextFunction } from 'express';
 import { milestoneService } from '../services/milestone.service';
 import { formatSuccess } from '../utils/response.util';
+import { AuthRequest } from '../types';
+import { prisma } from '../prisma';
 
 export const getMilestones = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const inspectionId = req.params.id as string;
+    const authReq = req as AuthRequest;
+    const user = authReq.user;
+
+    if (user?.role === 'CLIENT') {
+      let companyId = user.companyId;
+      if (!companyId) {
+        const dbUser = await prisma.user.findUnique({ where: { id: user.id }, select: { companyId: true } });
+        companyId = dbUser?.companyId;
+      }
+
+      const inspection = await prisma.inspection.findUnique({
+        where: { id: inspectionId },
+        select: { companyId: true }
+      });
+
+      if (!inspection || !companyId || inspection.companyId !== companyId) {
+        return res.status(403).json({ success: false, message: 'Anda tidak memiliki akses ke proyek ini' });
+      }
+    }
+
     const data = await milestoneService.getByInspectionId(inspectionId);
     res.json(formatSuccess(data));
   } catch (error) {

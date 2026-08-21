@@ -1,8 +1,19 @@
 import { prisma } from '../prisma';
 
 export const inspectionService = {
-  async getAll() {
+  async getAll(filter?: { companyId?: string | null; role?: string }) {
+    const where: any = {};
+    if (filter?.role === 'CLIENT') {
+      if (filter.companyId) {
+        where.companyId = filter.companyId;
+      } else {
+        // Jika akun klien belum dihubungkan ke perusahaan, jangan tampilkan data perusahaan lain
+        return [];
+      }
+    }
+
     return prisma.inspection.findMany({
+      where,
       include: {
         pic: { select: { id: true, name: true, email: true } },
         company: true,

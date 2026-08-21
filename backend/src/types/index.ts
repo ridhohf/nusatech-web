@@ -4,6 +4,7 @@ import { Request, Response, NextFunction } from 'express';
 export interface AuthUser {
   id: string;
   role: 'INTERNAL' | 'CLIENT';
+  companyId?: string | null;
 }
 
 export interface AuthRequest extends Request {

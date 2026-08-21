@@ -7,7 +7,10 @@ if (!JWT_SECRET) throw new Error('FATAL: JWT_SECRET environment variable is not 
 
 export const authService = {
   async login(email: string, password: string) {
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: { company: true },
+    });
     if (!user) return null;
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -17,12 +20,16 @@ export const authService = {
       throw new Error('Akun Admin Anda sedang menunggu persetujuan dari Admin utama.');
     }
 
-    const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: '1d' });
+    const token = jwt.sign(
+      { id: user.id, role: user.role, companyId: user.companyId },
+      JWT_SECRET,
+      { expiresIn: '1d' }
+    );
     const { password: _, ...userWithoutPassword } = user;
     return { user: userWithoutPassword, token };
   },
 
-  async register(data: { name: string; email: string; password: string; role: 'INTERNAL' | 'CLIENT' }) {
+  async register(data: { name: string; email: string; password: string; role: 'INTERNAL' | 'CLIENT'; companyId?: string }) {
     const existing = await prisma.user.findUnique({ where: { email: data.email } });
     if (existing) throw new Error('Email sudah terdaftar');
 
@@ -30,10 +37,18 @@ export const authService = {
     const isApproved = data.role === 'INTERNAL' ? false : true;
 
     const user = await prisma.user.create({
-      data: { ...data, password: hashedPassword, isApproved },
-      select: { id: true, name: true, email: true, role: true, isApproved: true, createdAt: true },
+      data: { 
+        name: data.name,
+        email: data.email,
+        password: hashedPassword,
+        role: data.role,
+        companyId: data.companyId || null,
+        isApproved,
+      },
+      include: { company: true },
     });
-    return user;
+    const { password: _, ...userWithoutPassword } = user;
+    return userWithoutPassword;
   },
 
   async resetPassword(email: string, newPassword: string) {
