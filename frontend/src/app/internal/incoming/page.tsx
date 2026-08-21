@@ -52,26 +52,9 @@ export default function IncomingPage() {
   const [newCompanyContact, setNewCompanyContact] = useState('');
   const [newCompanyPhone, setNewCompanyPhone] = useState('');
   const [newCompanyNpwp, setNewCompanyNpwp] = useState('');
-  const [newCompanyRegion, setNewCompanyRegion] = useState('AUTO');
+  const [newCompanyRegion, setNewCompanyRegion] = useState('65');
   const [addingCompany, setAddingCompany] = useState(false);
   const [companySuccessMessage, setCompanySuccessMessage] = useState('');
-
-  const getDetectedRegionInfo = () => {
-    if (newCompanyRegion === '51') {
-      return { code: '51', name: 'Sumatera Barat (Sumbar)', isAuto: false };
-    }
-    if (newCompanyRegion === '65') {
-      return { code: '65', name: 'Riau', isAuto: false };
-    }
-    
-    // AUTO detection from address or name
-    const fullText = `${newCompanyName} ${newCompanyAddress}`.toLowerCase();
-    const sumbarRegex = /sumbar|sumatera barat|padang|bukittinggi|payakumbuh|solok|sawahlunto|pariaman|padang panjang|pasaman|agam|dharmasraya|pesisir selatan|sijunjung|tanah datar|limapuluh kota|indarung/i;
-    if (sumbarRegex.test(fullText)) {
-      return { code: '51', name: 'Sumatera Barat (Sumbar)', isAuto: true };
-    }
-    return { code: '65', name: 'Riau (Default Base)', isAuto: true };
-  };
 
   const fetchData = async () => {
     // 1. Render instantly from cache
@@ -431,7 +414,7 @@ export default function IncomingPage() {
         </div>
       </div>
 
-      {/* MODAL: TAMBAH PERUSAHAAN BARU (Nama, Alamat, CP, No tel CP, NPWP) */}
+      {/* MODAL: TAMBAH PERUSAHAAN BARU */}
       {showCompanyModal && (
         <div style={{
           position: 'fixed',
@@ -461,6 +444,7 @@ export default function IncomingPage() {
                 <Building2 size={20} color="var(--blue-600)" /> Tambah Perusahaan Baru
               </h3>
               <button
+                type="button"
                 onClick={() => setShowCompanyModal(false)}
                 style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}
               >
@@ -493,47 +477,24 @@ export default function IncomingPage() {
                   <input
                     type="text"
                     className="form-input"
-                    placeholder="Contoh: Jl. Indarung, Padang / Jl. Riau, Pekanbaru..."
                     value={newCompanyAddress}
                     onChange={(e) => setNewCompanyAddress(e.target.value)}
                   />
                 </div>
 
-                {/* 3. WILAYAH / PROVINSI OPERASIONAL */}
-                {(() => {
-                  const detected = getDetectedRegionInfo();
-                  return (
-                    <div className="form-group" style={{ backgroundColor: '#f8fafc', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                        <label className="form-label" style={{ margin: 0, fontWeight: 700 }}>Wilayah / Provinsi *</label>
-                        <span style={{ 
-                          fontSize: '0.75rem', 
-                          fontWeight: 700,
-                          color: detected.code === '51' ? '#047857' : '#1d4ed8',
-                          backgroundColor: detected.code === '51' ? '#ecfdf5' : '#eff6ff',
-                          padding: '0.2rem 0.6rem',
-                          borderRadius: '0.375rem',
-                          border: `1px solid ${detected.code === '51' ? '#a7f3d0' : '#bfdbfe'}`
-                        }}>
-                          {detected.isAuto ? `⚡ Terdeteksi: [${detected.code}] ${detected.name}` : `🔒 Pilihan Manual: [${detected.code}] ${detected.name}`}
-                        </span>
-                      </div>
-                      <select
-                        className="form-input"
-                        value={newCompanyRegion}
-                        onChange={(e) => setNewCompanyRegion(e.target.value)}
-                        style={{ height: '36px', lineHeight: '36px', padding: '0 0.75rem', fontWeight: 600 }}
-                      >
-                        <option value="AUTO">⚡ Deteksi Otomatis (Dari Kata Kunci Alamat)</option>
-                        <option value="65">[65] Provinsi Riau (Pekanbaru, Dumai, Duri, Siak, dll.)</option>
-                        <option value="51">[51] Provinsi Sumatera Barat (Padang, Bukittinggi, Payakumbuh, dll.)</option>
-                      </select>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block', marginTop: '0.3rem' }}>
-                        * Kode Perusahaan akan diawali dengan kode wilayah (Riau: <b>65xx</b>, Sumbar: <b>51xx</b>).
-                      </span>
-                    </div>
-                  );
-                })()}
+                {/* 3. WILAYAH / PROVINSI */}
+                <div className="form-group">
+                  <label className="form-label">Wilayah / Provinsi *</label>
+                  <select
+                    className="form-input"
+                    value={newCompanyRegion}
+                    onChange={(e) => setNewCompanyRegion(e.target.value)}
+                    style={{ height: '36px', lineHeight: '36px', padding: '0 0.75rem' }}
+                  >
+                    <option value="65">Riau</option>
+                    <option value="51">Sumatera Barat</option>
+                  </select>
+                </div>
 
                 {/* 4. CONTACT PERSON (CP) */}
                 <div className="form-group">
