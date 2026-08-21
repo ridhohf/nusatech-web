@@ -157,12 +157,18 @@ export const milestoneService = {
         .map(m => m.id as string);
 
       // Delete any existing milestone that is no longer in validIncomingIds
-      await tx.projectMilestone.deleteMany({
-        where: {
-          inspectionId,
-          id: { notIn: validIncomingIds },
-        },
-      });
+      if (validIncomingIds.length > 0) {
+        await tx.projectMilestone.deleteMany({
+          where: {
+            inspectionId,
+            id: { notIn: validIncomingIds },
+          },
+        });
+      } else {
+        await tx.projectMilestone.deleteMany({
+          where: { inspectionId },
+        });
+      }
 
       // 3. Upsert / Create milestones
       for (let idx = 0; idx < (payload.milestones || []).length; idx++) {
@@ -222,7 +228,7 @@ export const milestoneService = {
         data: { totalPrice: grandTotal },
       });
 
-      return this.getByInspectionId(inspectionId);
+      return milestoneService.getByInspectionId(inspectionId);
     });
   },
 
@@ -254,16 +260,16 @@ export const milestoneService = {
       },
     });
 
-    return this.getByInspectionId(inspectionId);
+    return milestoneService.getByInspectionId(inspectionId);
   },
 
   async deleteMilestoneRow(inspectionId: string, milestoneId: string) {
     await prisma.projectMilestone.delete({ where: { id: milestoneId } });
-    return this.getByInspectionId(inspectionId);
+    return milestoneService.getByInspectionId(inspectionId);
   },
 
   async resetToEmpty(inspectionId: string) {
     await prisma.projectMilestone.deleteMany({ where: { inspectionId } });
-    return this.getByInspectionId(inspectionId);
+    return milestoneService.getByInspectionId(inspectionId);
   },
 };
