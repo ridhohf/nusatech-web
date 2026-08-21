@@ -77,8 +77,28 @@ export default function SCurveModal({ inspection, isOpen, onClose, isReadOnly = 
 
   const parseNum = (val: any): number => {
     if (val === null || val === undefined || val === '') return 0;
-    const sanitized = String(val).replace(',', '.').trim();
-    const parsed = parseFloat(sanitized);
+    if (typeof val === 'number') return isNaN(val) ? 0 : val;
+    let str = String(val).trim();
+    // If string has both dot and comma (e.g. "3.825.000,00" or "3,825,000.00")
+    if (str.includes('.') && str.includes(',')) {
+      if (str.lastIndexOf(',') > str.lastIndexOf('.')) {
+        // Format ID/EU: 3.825.000,00 -> hilangkan titik ribuan, koma jadi titik desimal
+        str = str.replace(/\./g, '').replace(',', '.');
+      } else {
+        // Format US: 3,825,000.00 -> hilangkan koma ribuan
+        str = str.replace(/,/g, '');
+      }
+    } else if ((str.match(/\./g) || []).length > 1) {
+      // Banyak titik ribuan misal "3.825.000" -> hilangkan titik
+      str = str.replace(/\./g, '');
+    } else if ((str.match(/,/g) || []).length > 1) {
+      // Banyak koma ribuan misal "3,825,000" -> hilangkan koma
+      str = str.replace(/,/g, '');
+    } else if (str.includes(',')) {
+      // Koma desimal tunggal misal "11,27" -> "11.27"
+      str = str.replace(',', '.');
+    }
+    const parsed = parseFloat(str);
     return isNaN(parsed) ? 0 : parsed;
   };
 
@@ -292,9 +312,9 @@ export default function SCurveModal({ inspection, isOpen, onClose, isReadOnly = 
       });
       await fetchMilestones();
       alert('Matriks pengerjaan harian & Kurva-S berhasil disimpan!');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to save daily matrix:', err);
-      alert('Gagal menyimpan matriks pengerjaan');
+      alert(err.response?.data?.message || err.message || 'Gagal menyimpan matriks pengerjaan');
     } finally {
       setSaving(false);
     }
@@ -583,7 +603,7 @@ export default function SCurveModal({ inspection, isOpen, onClose, isReadOnly = 
                     <th className="py-2.5 px-3 min-w-[220px]">URAIAN PEKERJAAN</th>
                     <th className="py-2.5 px-2 text-center w-12">QTY</th>
                     <th className="py-2.5 px-2 text-center w-12">UOM</th>
-                    <th className="py-2.5 px-3 text-right w-24">HARGA (Rp)</th>
+                    <th className="py-2.5 px-3 text-right min-w-[130px] w-36">HARGA (Rp)</th>
                     <th className="py-2.5 px-2 text-center w-14">BOBOT</th>
                     <th className="py-2.5 px-2 text-center w-8">P/A</th>
                     {Array.from({ length: durationDays }, (_, i) => (
@@ -650,17 +670,17 @@ export default function SCurveModal({ inspection, isOpen, onClose, isReadOnly = 
                         </td>
 
                         {/* HARGA */}
-                        <td className="py-2 px-3 text-right align-top font-mono">
+                        <td className="py-2 px-2 text-right align-top font-mono">
                           {!isReadOnly ? (
                             <input
                               type="text"
                               inputMode="numeric"
                               value={m.unitPrice ?? ''}
                               onChange={(e) => handleRowFieldChange(rIdx, 'unitPrice', e.target.value)}
-                              className="w-20 text-right text-xs font-medium border border-slate-200 rounded py-0.5"
+                              className="w-full min-w-[110px] text-right text-xs font-mono font-medium border border-slate-200 rounded px-2 py-0.5 focus:border-blue-500 outline-none"
                             />
                           ) : (
-                            <span>{rowTotal.toLocaleString('id-ID')}</span>
+                            <span>{(parseNum(m.unitPrice)).toLocaleString('id-ID')}</span>
                           )}
                         </td>
 
@@ -848,14 +868,14 @@ export default function SCurveModal({ inspection, isOpen, onClose, isReadOnly = 
                   />
                 </div>
 
-                <div className="w-36">
+                <div className="min-w-[140px] w-44">
                   <label className="text-[11px] font-bold text-slate-600 block mb-1">Harga Satuan (Rp)</label>
                   <input
                     type="text"
                     inputMode="numeric"
                     value={newUnitPrice}
                     onChange={(e) => setNewUnitPrice(e.target.value)}
-                    className="form-input text-xs text-right w-full"
+                    className="form-input text-xs text-right w-full font-mono"
                     style={{ height: '36px' }}
                   />
                 </div>

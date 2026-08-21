@@ -132,8 +132,8 @@ export const milestoneService = {
       uom: string;
       unitPrice: number;
       totalPrice?: number;
-      dailyPlanning: number[];
-      dailyActual: number[];
+      dailyPlanning: (number | string)[];
+      dailyActual: (number | string)[];
     }[];
   }) {
     return prisma.$transaction(async (tx) => {
@@ -141,56 +141,74 @@ export const milestoneService = {
       if (payload.durationDays) {
         await tx.inspection.update({
           where: { id: inspectionId },
-          data: { durationDays: payload.durationDays },
+          data: { durationDays: Number(payload.durationDays) || 7 },
         });
       }
 
-      // 2. Remove milestones not in incoming payload if IDs provided
-      const incomingIds = payload.milestones.filter(m => m.id).map(m => m.id as string);
-      if (incomingIds.length > 0) {
-        await tx.projectMilestone.deleteMany({
-          where: {
-            inspectionId,
-            id: { notIn: incomingIds },
-          },
-        });
-      } else if (payload.milestones.length === 0) {
-        await tx.projectMilestone.deleteMany({ where: { inspectionId } });
-      }
+      // 2. Fetch existing milestone IDs for this inspection
+      const existing = await tx.projectMilestone.findMany({
+        where: { inspectionId },
+        select: { id: true },
+      });
+      const existingIdSet = new Set(existing.map(e => e.id));
 
-      // 3. Upsert each milestone item
-      for (let idx = 0; idx < payload.milestones.length; idx++) {
+      const validIncomingIds = (payload.milestones || [])
+        .filter(m => m.id && existingIdSet.has(m.id))
+        .map(m => m.id as string);
+
+      // Delete any existing milestone that is no longer in validIncomingIds
+      await tx.projectMilestone.deleteMany({
+        where: {
+          inspectionId,
+          id: { notIn: validIncomingIds },
+        },
+      });
+
+      // 3. Upsert / Create milestones
+      for (let idx = 0; idx < (payload.milestones || []).length; idx++) {
         const item = payload.milestones[idx];
         const qty = Number(item.qty) || 1;
         const unitPrice = Number(item.unitPrice) || 0;
         const totalPrice = item.totalPrice !== undefined ? Number(item.totalPrice) : qty * unitPrice;
+        
+        // Clean dailyPlanning & dailyActual arrays into numbers
+        const cleanPlanning = (item.dailyPlanning || []).map(v => {
+          if (typeof v === 'number') return isNaN(v) ? 0 : v;
+          const p = parseFloat(String(v).replace(',', '.'));
+          return isNaN(p) ? 0 : p;
+        });
+        const cleanActual = (item.dailyActual || []).map(v => {
+          if (typeof v === 'number') return isNaN(v) ? 0 : v;
+          const p = parseFloat(String(v).replace(',', '.'));
+          return isNaN(p) ? 0 : p;
+        });
 
-        if (item.id) {
+        if (item.id && existingIdSet.has(item.id)) {
           await tx.projectMilestone.update({
             where: { id: item.id },
             data: {
-              taskName: item.taskName,
+              taskName: item.taskName || `Pekerjaan ${idx + 1}`,
               qty,
               uom: item.uom || 'SET',
               unitPrice,
               totalPrice,
               order: idx + 1,
-              dailyPlanning: item.dailyPlanning,
-              dailyActual: item.dailyActual,
+              dailyPlanning: cleanPlanning,
+              dailyActual: cleanActual,
             },
           });
         } else {
           await tx.projectMilestone.create({
             data: {
               inspectionId,
-              taskName: item.taskName,
+              taskName: item.taskName || `Pekerjaan ${idx + 1}`,
               qty,
               uom: item.uom || 'SET',
               unitPrice,
               totalPrice,
               order: idx + 1,
-              dailyPlanning: item.dailyPlanning,
-              dailyActual: item.dailyActual,
+              dailyPlanning: cleanPlanning,
+              dailyActual: cleanActual,
             },
           });
         }
