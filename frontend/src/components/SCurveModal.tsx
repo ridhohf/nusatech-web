@@ -297,7 +297,7 @@ export default function SCurveModal({ inspection, isOpen, onClose, isReadOnly = 
   const handleSaveAll = async () => {
     setSaving(true);
     try {
-      await apiClient.put(`/inspections/${inspection.id}/milestones/daily-matrix`, {
+      const res = await apiClient.put(`/inspections/${inspection.id}/milestones/daily-matrix`, {
         durationDays,
         milestones: milestones.map(m => ({
           id: m.id,
@@ -310,7 +310,19 @@ export default function SCurveModal({ inspection, isOpen, onClose, isReadOnly = 
           dailyActual: (m.dailyActual || []).map(v => parseNum(v)),
         })),
       });
-      await fetchMilestones();
+
+      const data = res.data?.data || res.data;
+      if (data && data.milestones) {
+        setMilestones(data.milestones);
+        if (data.durationDays) {
+          setDurationDays(data.durationDays);
+          setDurationInput(String(data.durationDays));
+        }
+        if (data.totalProjectValue !== undefined) setTotalProjectValue(data.totalProjectValue);
+        if (data.matrixSummary) setMatrixSummary(data.matrixSummary);
+        if (data.currentPerformance) setCurrentPerformance(data.currentPerformance);
+      }
+
       alert('Matriks pengerjaan harian & Kurva-S berhasil disimpan!');
     } catch (err: any) {
       console.error('Failed to save daily matrix:', err);

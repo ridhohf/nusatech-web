@@ -136,26 +136,34 @@ export const milestoneService = {
       dailyActual: (number | string)[];
     }[];
   }) {
-    // 1. Update durationDays on inspection if changed
-    if (payload.durationDays) {
-      await prisma.inspection.update({
-        where: { id: inspectionId },
-        data: { durationDays: Number(payload.durationDays) || 7 },
-      });
-    }
+    const rawMilestones = payload.milestones || [];
+    const grandTotal = rawMilestones.reduce((s, m) => {
+      const q = Number(m.qty) || 1;
+      const u = Number(m.unitPrice) || 0;
+      return s + (m.totalPrice !== undefined ? Number(m.totalPrice) : q * u);
+    }, 0);
 
-    // 2. Fetch existing milestone IDs for this inspection
+    // 1. Update durationDays & totalPrice on inspection in a single query
+    await prisma.inspection.update({
+      where: { id: inspectionId },
+      data: {
+        ...(payload.durationDays ? { durationDays: Number(payload.durationDays) || 7 } : {}),
+        totalPrice: grandTotal,
+      },
+    });
+
+    // 2. Fetch existing milestone IDs
     const existing = await prisma.projectMilestone.findMany({
       where: { inspectionId },
       select: { id: true },
     });
     const existingIdSet = new Set(existing.map(e => e.id));
 
-    const validIncomingIds = (payload.milestones || [])
+    const validIncomingIds = rawMilestones
       .filter(m => m.id && existingIdSet.has(m.id))
       .map(m => m.id as string);
 
-    // Delete any existing milestone that is no longer in validIncomingIds
+    // 3. Delete removed milestones
     if (validIncomingIds.length > 0) {
       await prisma.projectMilestone.deleteMany({
         where: {
@@ -169,14 +177,12 @@ export const milestoneService = {
       });
     }
 
-    // 3. Upsert / Create milestones
-    for (let idx = 0; idx < (payload.milestones || []).length; idx++) {
-      const item = payload.milestones[idx];
+    // 4. Parallel Upsert / Create all milestones simultaneously
+    await Promise.all(rawMilestones.map((item, idx) => {
       const qty = Number(item.qty) || 1;
       const unitPrice = Number(item.unitPrice) || 0;
       const totalPrice = item.totalPrice !== undefined ? Number(item.totalPrice) : qty * unitPrice;
       
-      // Clean dailyPlanning & dailyActual arrays into numbers
       const cleanPlanning = (item.dailyPlanning || []).map(v => {
         if (typeof v === 'number') return isNaN(v) ? 0 : v;
         const p = parseFloat(String(v).replace(',', '.'));
@@ -189,7 +195,7 @@ export const milestoneService = {
       });
 
       if (item.id && existingIdSet.has(item.id)) {
-        await prisma.projectMilestone.update({
+        return prisma.projectMilestone.update({
           where: { id: item.id },
           data: {
             taskName: item.taskName || `Pekerjaan ${idx + 1}`,
@@ -203,7 +209,7 @@ export const milestoneService = {
           },
         });
       } else {
-        await prisma.projectMilestone.create({
+        return prisma.projectMilestone.create({
           data: {
             inspectionId,
             taskName: item.taskName || `Pekerjaan ${idx + 1}`,
@@ -217,15 +223,7 @@ export const milestoneService = {
           },
         });
       }
-    }
-
-    // 4. Update total project value on inspection
-    const allMilestones = await prisma.projectMilestone.findMany({ where: { inspectionId } });
-    const grandTotal = allMilestones.reduce((s, m) => s + (m.totalPrice || 0), 0);
-    await prisma.inspection.update({
-      where: { id: inspectionId },
-      data: { totalPrice: grandTotal },
-    });
+    }));
 
     return milestoneService.getByInspectionId(inspectionId);
   },
