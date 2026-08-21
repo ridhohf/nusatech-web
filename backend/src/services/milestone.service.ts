@@ -136,53 +136,16 @@ export const milestoneService = {
       dailyActual: (number | string)[];
     }[];
   }) {
+    const durationDays = Number(payload.durationDays) || 7;
     const rawMilestones = payload.milestones || [];
-    const grandTotal = rawMilestones.reduce((s, m) => {
-      const q = Number(m.qty) || 1;
-      const u = Number(m.unitPrice) || 0;
-      return s + (m.totalPrice !== undefined ? Number(m.totalPrice) : q * u);
-    }, 0);
-
-    // 1. Update durationDays & totalPrice on inspection in a single query
-    await prisma.inspection.update({
-      where: { id: inspectionId },
-      data: {
-        ...(payload.durationDays ? { durationDays: Number(payload.durationDays) || 7 } : {}),
-        totalPrice: grandTotal,
-      },
-    });
-
-    // 2. Fetch existing milestone IDs
-    const existing = await prisma.projectMilestone.findMany({
-      where: { inspectionId },
-      select: { id: true },
-    });
-    const existingIdSet = new Set(existing.map(e => e.id));
-
-    const validIncomingIds = rawMilestones
-      .filter(m => m.id && existingIdSet.has(m.id))
-      .map(m => m.id as string);
-
-    // 3. Delete removed milestones
-    if (validIncomingIds.length > 0) {
-      await prisma.projectMilestone.deleteMany({
-        where: {
-          inspectionId,
-          id: { notIn: validIncomingIds },
-        },
-      });
-    } else {
-      await prisma.projectMilestone.deleteMany({
-        where: { inspectionId },
-      });
-    }
-
-    // 4. Parallel Upsert / Create all milestones simultaneously
-    await Promise.all(rawMilestones.map((item, idx) => {
+    
+    let grandTotal = 0;
+    const recordsToInsert = rawMilestones.map((item, idx) => {
       const qty = Number(item.qty) || 1;
       const unitPrice = Number(item.unitPrice) || 0;
       const totalPrice = item.totalPrice !== undefined ? Number(item.totalPrice) : qty * unitPrice;
-      
+      grandTotal += totalPrice;
+
       const cleanPlanning = (item.dailyPlanning || []).map(v => {
         if (typeof v === 'number') return isNaN(v) ? 0 : v;
         const p = parseFloat(String(v).replace(',', '.'));
@@ -194,36 +157,34 @@ export const milestoneService = {
         return isNaN(p) ? 0 : p;
       });
 
-      if (item.id && existingIdSet.has(item.id)) {
-        return prisma.projectMilestone.update({
-          where: { id: item.id },
-          data: {
-            taskName: item.taskName || `Pekerjaan ${idx + 1}`,
-            qty,
-            uom: item.uom || 'SET',
-            unitPrice,
-            totalPrice,
-            order: idx + 1,
-            dailyPlanning: cleanPlanning,
-            dailyActual: cleanActual,
-          },
-        });
-      } else {
-        return prisma.projectMilestone.create({
-          data: {
-            inspectionId,
-            taskName: item.taskName || `Pekerjaan ${idx + 1}`,
-            qty,
-            uom: item.uom || 'SET',
-            unitPrice,
-            totalPrice,
-            order: idx + 1,
-            dailyPlanning: cleanPlanning,
-            dailyActual: cleanActual,
-          },
-        });
-      }
-    }));
+      return {
+        inspectionId,
+        taskName: item.taskName || `Pekerjaan ${idx + 1}`,
+        qty,
+        uom: item.uom || 'SET',
+        unitPrice,
+        totalPrice,
+        order: idx + 1,
+        dailyPlanning: cleanPlanning,
+        dailyActual: cleanActual,
+      };
+    });
+
+    // 1. Eksekusi hapus data lama & update inspeksi secara paralel (1 roundtrip)
+    await Promise.all([
+      prisma.projectMilestone.deleteMany({ where: { inspectionId } }),
+      prisma.inspection.update({
+        where: { id: inspectionId },
+        data: { durationDays, totalPrice: grandTotal },
+      }),
+    ]);
+
+    // 2. Batch insert semua rincian pekerjaan baru sekaligus (1 roundtrip)
+    if (recordsToInsert.length > 0) {
+      await prisma.projectMilestone.createMany({
+        data: recordsToInsert,
+      });
+    }
 
     return milestoneService.getByInspectionId(inspectionId);
   },

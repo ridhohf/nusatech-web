@@ -720,7 +720,6 @@ export default function SCurveModal({ inspection, isOpen, onClose, isReadOnly = 
                                     type="text"
                                     inputMode="decimal"
                                     value={pVal !== undefined && pVal !== null ? pVal : ''}
-                                    placeholder="0"
                                     onChange={(e) => handleCellChange(rIdx, 'P', dIdx, e.target.value)}
                                     className="w-12 text-center text-[11px] font-mono text-blue-800 bg-blue-50/30 border border-blue-200/60 rounded px-1 py-0.5 outline-none focus:bg-blue-100"
                                   />
@@ -735,7 +734,6 @@ export default function SCurveModal({ inspection, isOpen, onClose, isReadOnly = 
                                     type="text"
                                     inputMode="decimal"
                                     value={aVal !== undefined && aVal !== null ? aVal : ''}
-                                    placeholder="0"
                                     onChange={(e) => handleCellChange(rIdx, 'A', dIdx, e.target.value)}
                                     className="w-12 text-center text-[11px] font-mono text-emerald-800 bg-emerald-50/30 border border-emerald-200/60 rounded px-1 py-0.5 outline-none focus:bg-emerald-100"
                                   />
